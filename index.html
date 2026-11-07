@@ -11,9 +11,9 @@
 :root{
   --bg:#0d1a2c;
   --panel:rgba(40,66,100,.78);
-  --panel-2:rgba(34,56,86,.9);
+  
   --line:rgba(160,210,255,.18);
-  --line-2:rgba(160,210,255,.34);
+  
   --ink:#e9f3ff;
   --ink-2:#b6cade;
   --dim:#8299b0;
@@ -118,9 +118,9 @@ button{font:inherit;cursor:pointer}
 /* ---------- 钱包 / 链卡 ---------- */
 .wallet{margin-top:22px}
 .wallet-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:14px;background:linear-gradient(110deg,rgba(34,56,86,.9),rgba(6,12,20,.92));border:1px solid var(--line);margin-bottom:11px}
-.who{font-weight:750;font-size:14px;display:flex;align-items:center;gap:8px}
+.who{font-weight:750;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .who .addr{font:400 11px/1 var(--mono);color:var(--dim);letter-spacing:.2px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.who button{background:none;border:0;color:#6f93b5;font-size:11px;padding:2px 4px}
+.who button{background:none;border:0;color:#6f93b5;font-size:11px;padding:2px 4px;white-space:nowrap;flex:0 0 auto}
 .who button:hover{color:var(--acc)}
 .wallet-sum{margin-left:auto;display:flex;align-items:baseline;gap:10px;font-size:12px;color:#93aec5;flex-wrap:wrap;justify-content:flex-end}
 .wallet-sum b{font:800 16px/1 var(--mono);color:var(--acc-2)}
@@ -137,15 +137,18 @@ button{font:inherit;cursor:pointer}
 .ch .tot{margin-left:auto;text-align:right;line-height:1.25}
 .ch .tot span{display:block;font-size:10.5px;color:#7d94aa}
 .ch .tot b{font:800 15px/1.2 var(--mono);color:#eaf3ff}
+.ch .tot .parts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px}
+.ch .tot .parts i{display:inline-block;font-style:normal;font-size:10px;line-height:1.5;color:#9db6cd;
+  border:1px solid rgba(140,200,255,.22);border-radius:5px;padding:1px 6px;background:rgba(8,16,28,.55);white-space:nowrap}
 .ch a.verify{flex-basis:100%;font-size:11px;color:#6f93b5;text-decoration:none;margin-top:-2px}
 .ch a.verify:hover{color:var(--acc)}
 
-.sec{margin-top:14px}
+.sec{margin-top:16px}
 .sec-h{display:flex;align-items:center;gap:7px;font:700 11px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#7fa0bb;margin-bottom:8px}
 .sec-h .hint{margin-left:auto;font:600 10px/1 var(--mono);letter-spacing:0;text-transform:none;padding:3px 7px;border-radius:6px;background:rgba(124,200,255,.1);color:#9dd8ff}
 .sec-h .hint.off{background:rgba(255,179,122,.1);color:#ffc79a}
 
-.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 11px;border-radius:10px;background:rgba(34,56,86,.6);border:1px solid rgba(140,200,255,.075);margin-bottom:6px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(34,56,86,.6);border:1px solid rgba(140,200,255,.075);margin-bottom:6px}
 .row:last-child{margin-bottom:0}
 .row .l{font-size:13px;color:#cfe0ef;min-width:0}
 .row .l small{display:block;color:#8ba1b8;font-size:11px;margin-top:2px}
@@ -154,8 +157,9 @@ button{font:inherit;cursor:pointer}
 .row.sum{background:rgba(124,200,255,.07);border-color:rgba(124,200,255,.22)}
 .row.sum .l{font-weight:700;color:#eaf4ff}
 .row.sum .r{color:var(--acc);font-weight:800;font-size:14px}
-.row.zero .r{color:#5e7488}
-.row.pend .r{color:#ffc79a}
+.row.zero .r{color:#7f95ab}
+.row.zero .l{color:#b9cfe2}
+
 
 details{margin-top:6px;border-radius:12px;background:rgba(32,53,82,.52);border:1px solid rgba(140,200,255,.09)}
 details>summary{list-style:none;cursor:pointer;padding:9px 12px;font-size:12.5px;color:#b7d3e6;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(124,200,255,.07),transparent 70%);border-radius:11px}
@@ -174,19 +178,26 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 .ent .rr{text-align:right;white-space:nowrap}
 .ent .rr b{color:#ffc79a}
 
-.tagline{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
-.tagline span{font-size:10.5px;padding:3px 8px;border-radius:6px;background:rgba(34,56,86,.66);border:1px solid rgba(140,200,255,.1);color:#8fa9c1}
-.tagline span b{color:#d9ecff;font-family:var(--mono)}
 
 .note{color:#7d94aa;font-size:11.5px;line-height:1.7;margin-top:12px}
 .note b{color:#b6cfe0}
 .errbox{margin-top:12px;padding:9px 12px;border-radius:10px;background:rgba(255,143,128,.08);border:1px solid rgba(255,143,128,.25);color:#ffb3a7;font-size:11.5px;line-height:1.6}
 
+.skel{display:grid;gap:11px;margin-top:18px}
+.sk-card{padding:18px;border-radius:17px;border:1px solid var(--line);background:var(--panel)}
+.sk-line{height:12px;border-radius:6px;margin-bottom:10px;background:linear-gradient(90deg,rgba(140,200,255,.08),rgba(140,200,255,.2),rgba(140,200,255,.08));background-size:220% 100%;animation:sk 1.3s ease-in-out infinite}
+.sk-line:last-child{margin-bottom:0}
+.sk-big{height:30px;width:46%;border-radius:8px;margin-bottom:14px}
+.w30{width:30%}.w50{width:50%}.w70{width:70%}.w90{width:90%}
+@keyframes sk{0%{background-position:120% 0}100%{background-position:-120% 0}}
+.fade{animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .empty{margin-top:20px;padding:34px 18px;text-align:center;color:#6c8299;font-size:13px;line-height:1.9;border:1px dashed rgba(140,200,255,.16);border-radius:16px}
 .foot{margin-top:26px;text-align:center;color:#5c7186;font-size:11.5px;line-height:1.9;overflow-wrap:anywhere}
 .foot a{color:#6f93b5}
 
 @media(max-width:720px){
+  .who .addr{max-width:100%;flex-basis:100%;order:3}
   .hero{grid-template-columns:1fr;gap:14px}
   .hero .v{font-size:clamp(30px,9vw,40px)}
   .split{grid-template-columns:1fr}
@@ -331,9 +342,9 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         { label: '600 天长期质押', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
       ],
       others: [
-        { label: '活动积分质押', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E', unit: '积分', entries: true },
-        { label: '折扣质押',     addr: '0x5584CDeb1369673C91C6aD7EBea0cE7cB630ce60', unit: 'LGNS？', entries: true },
-        { label: '即时质押',     addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824', unit: 'LGNS？', entries: false }
+        { label: '活动积分质押', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E' },
+        { label: '折扣质押',     addr: '0x5584CDeb1369673C91C6aD7EBea0cE7cB630ce60' },
+        { label: '即时质押',     addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824' }
       ],
       bonds: [
         { label: '销毁债券',      addr: '0x11b10C9827c5B7071E96fcAa143B4e6E86b17c69', sym: 'DAI', dec: 18, abi: 'burn' },
@@ -799,7 +810,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   }
   // 金本位债券：合约记录的应付 LGNS（销毁债券按 getClaimable）
   function bondPayable(c) { return c.bonds.reduce(function (s, b) { return s + (b.payable || 0n); }, 0n); }
-  function bondClaim(c) { return c.bonds.reduce(function (s, b) { return s + (b.claimable || 0n); }, 0n); }
   function rewardSum(c) { return c.rewards.reduce(function (s, r) { return s + (r.raw || 0n); }, 0n); }
   // 持仓：钱包 + sLGNS + 热身期 + 锁仓现值（锁仓现值 = ΣbalanceForGons(gons)，已含已产生收益）
   function otherPrincipal(c) {
@@ -809,10 +819,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     return (c.lgns ? c.lgns.raw : 0n) + (c.flex ? c.flex.raw : 0n) +
            (c.warmup ? c.warmup.raw : 0n) + lockPrincipal(c) + otherPrincipal(c);
   }
-  // 锁仓已计息：已折进锁仓现值，只展示不叠加
-  function lockAccruedOnly(c) { return lockAccrued(c); }
-  // 其它合约待领（涡轮/蛛网/DAO/社区）：独立合约，领取不影响任何持仓，计入
-  function rewardPending(c) { return rewardSum(c); }
   // 总币量 = 持仓（含锁仓收益） + 金本位债券应付 + 其它合约待领
   function chainTotal(c) { return holdings(c) + bondPayable(c) + rewardSum(c); }
 
@@ -844,8 +850,9 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     /* 头部 */
     h += '<div class="ch"><span class="pill ' + cfg.cls + '">' + cfg.name + '</span>' +
       '<div class="tot"><span>本链总币量</span><b>' + fmt(total, 9) + '</b>' +
-      '<span style="color:#7d94aa;margin-top:2px">持仓 ' + fmt(hold, 9) +
-      (gold > 0n ? ' · 债券 ' + fmt(gold, 9) : '') + (rw > 0n ? ' · 奖励 ' + fmt(rw, 9) : '') + '</span></div>' +
+      '<span class="parts"><i>持仓 ' + fmt(hold, 9) + '</i>' +
+      (gold > 0n ? '<i>债券 ' + fmt(gold, 9) + '</i>' : '') +
+      (rw > 0n ? '<i>奖励 ' + fmt(rw, 9) + '</i>' : '') + '</span></div>' +
       '<a class="verify" href="' + cfg.explorer + wallet + '" target="_blank" rel="noopener">链上验证 ↗ ' + esc(short(wallet)) + '</a></div>';
 
     /* 持仓构成 */
@@ -904,7 +911,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     /* 金本位债券 */
     if (c.bonds.length) {
       var heldBonds = c.bonds.filter(function (b) { return b.count > 0; });
-      h += '<details' + (heldBonds.length ? ' open' : '') + '><summary>金本位债券（计入） <span class="m">' +
+      h += '<details><summary>金本位债券（计入） <span class="m">' +
         (heldBonds.length ? fmt(gold, 9) + ' LGNS' : c.bonds.length + ' 类 · 无持仓') + '</span></summary><div class="dbody">';
       if (!heldBonds.length) {
         h += '<div class="ent" style="border-left-color:rgba(140,200,255,.12)"><span>已核对 ' + c.bonds.length +
@@ -933,7 +940,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
     /* 其它合约待领（计入） */
     if (c.rewards.length) {
-      h += '<details' + (rw > 0n ? ' open' : '') + '><summary>涡轮 / 蛛网 / DAO（计入） <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
+      h += '<details><summary>涡轮 / 蛛网 / DAO（计入） <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
       c.rewards.forEach(function (r) {
         h += row(esc(r.label), fmt(r.raw, 9), 'LGNS', {
           zero: r.raw === 0n,
@@ -963,7 +970,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     /* ILO / 其他质押（计入） */
     if (c.others.length) {
       var op = otherPrincipal(c);
-      h += '<details' + (op > 0n ? ' open' : '') + '><summary>ILO / 其他质押（计入） <span class="m">' + fmt(op, 9) + '</span></summary><div class="dbody">';
+      h += '<details><summary>ILO / 其他质押（计入） <span class="m">' + fmt(op, 9) + '</span></summary><div class="dbody">';
       c.others.forEach(function (o) {
         h += row(esc(o.label), fmt(o.principal, 9), 'LGNS', {
           zero: o.principal === 0n,
@@ -1073,6 +1080,13 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     });
     return { valid: valid, invalid: invalid };
   }
+  function skeleton() {
+    var one = '<div class="sk-card"><div class="sk-line sk-big"></div><div class="sk-line w90"></div>' +
+      '<div class="sk-line w70"></div><div class="sk-line w50"></div></div>';
+    var two = '<div class="sk-card"><div class="sk-line w30"></div><div class="sk-line w90"></div>' +
+      '<div class="sk-line w70"></div><div class="sk-line w50"></div><div class="sk-line w90"></div></div>';
+    return '<div class="skel">' + one + '<div class="grid">' + two + two + '</div></div>';
+  }
   function setStatus(html, cls) {
     var el = $('status');
     el.className = 'status' + (cls ? ' ' + cls : '');
@@ -1106,7 +1120,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     $('go').disabled = true;
     $('go').textContent = '查询中…';
     $('empty').style.display = 'none';
-    $('out').innerHTML = '';
+    $('out').innerHTML = skeleton();
     saveSaved(p.valid);
     showSaved();
     setStatus('<span class="spin"></span>正在读取 ' + p.valid.length + ' 个钱包的双链数据…', 'live');
@@ -1126,6 +1140,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
       state.last = results;
       $('out').innerHTML = render(results);
+      $('out').firstChild && $('out').firstChild.classList.add('fade');
 
       var errs = 0;
       results.forEach(function (w) {
