@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,follow">
-<title>双链钱包总币量查询 · Wallet Balance</title>
+<title>双链钱包总币量查询 · Wallet Balance · Web3Origin</title>
 <meta name="description" content="合并查询多个钱包在 Polygon 与 Anubis 的 LGNS、质押本金与所有未领取奖励。">
+<link rel="canonical" href="https://web3origin.com/tools/staking-query/">
 <style>
 :root{--bg:#08090c;--tile:#12151b;--tile2:#181d25;--line:#222833;--acc:#8fe36a;--acc2:#b6f36a;--gold2:#8fe36a;--txt:#e8edf2;--white:#fff;--dim:#8a94a1;--soft:#c2cad4;--green:#8fe36a;--red:#ff8b63;--blue:#8fd4ff;--poly:#b79bf0}
 [data-lang]{display:none!important}
@@ -94,15 +95,12 @@ h1 span{color:var(--white)}
 .qin{resize:vertical;line-height:1.5}
 #addr{min-height:104px}
 .qactions{display:flex;flex-direction:column;gap:8px;min-width:138px}
-.walletbtn{background:var(--tile2);border:1px solid var(--line);color:var(--soft);border-radius:14px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;min-height:46px}
-.walletbtn:hover{border-color:var(--acc);color:var(--white)}
-.walletbtn:disabled{opacity:.55;cursor:default}
 .wallet-head{background:var(--tile2);border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin:13px 0 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .wallet-address{font-weight:750}.wallet-address .mono{display:block;color:var(--dim);font-size:11px;font-weight:400;overflow-wrap:anywhere}
 .wallet-total{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--soft);font-size:12px}
 .wallet-total b{color:var(--acc);font-size:14px}
 .chainsum small{display:block;color:var(--dim);font-size:11px;margin-top:3px}
-@media(max-width:520px){.qactions{width:100%;min-width:0;flex-direction:column}.qactions button{width:100%;min-height:48px}.wallet-total{gap:8px}.wallet-head{align-items:flex-start}}
+@media(max-width:520px){.qactions{width:100%;min-width:0}.qactions button{width:100%;min-height:48px}.wallet-total{gap:8px}.wallet-head{align-items:flex-start}}
 
 </style>
 </head>
@@ -115,7 +113,7 @@ h1 span{color:var(--white)}
 
   <div class="qbox">
     <textarea class="qin" id="addr" rows="3" spellcheck="false" autocomplete="off" placeholder="每行输入一个钱包地址"></textarea>
-    <div class="qactions"><button class="walletbtn" id="walletBtn" type="button">读取当前钱包</button><button class="qbtn" id="qbtn" type="button">查询总币量</button></div>
+    <div class="qactions"><button class="qbtn" id="qbtn" type="button">查询总币量</button></div>
   </div>
   <div class="qhint"><span data-lang="zh">每行一个地址，最多 10 个。查询后自动记住，下次打开会自动填入；仅保存在本机浏览器。</span><span data-lang="en">One address per line, up to 10. Checked addresses are saved on this device and restored next time.</span> <button class="clear-saved" id="clearSaved" type="button"><span data-lang="zh">清除已保存钱包</span><span data-lang="en">Clear saved wallets</span></button> <span class="saved-status" id="savedStatus"></span></div>
   <div class="status" id="status"></div>
@@ -256,7 +254,7 @@ h1 span{color:var(--white)}
   function stakePrincipal(o){return (o.sLGNS?o.sLGNS.raw:0n)+lockSum(o);}
   function shortA(a){return /^0x[0-9a-fA-F]{40}$/.test(a)?a.slice(0,6)+'…'+a.slice(-4):a;}
 
-  var addrEl=document.getElementById('addr'), btn=document.getElementById('qbtn'), walletBtn=document.getElementById('walletBtn');
+  var addrEl=document.getElementById('addr'), btn=document.getElementById('qbtn');
   var st=document.getElementById('status'), res=document.getElementById('result'), empty=document.getElementById('empty');
   var WKEY='staking_saved_wallets_v1';
   var clearSavedBtn=document.getElementById('clearSaved'), savedStatus=document.getElementById('savedStatus');
@@ -290,24 +288,6 @@ h1 span{color:var(--white)}
     showSavedStatus(0);
     st.innerHTML='<span class="dot"></span>'+SP('已清除本机保存的钱包地址。','Saved wallet addresses cleared from this device.');
   }
-  async function addCurrentWallet(){
-    if(!window.ethereum||typeof window.ethereum.request!=='function'){
-      st.innerHTML='<span style="color:#ff9a8f">'+SP('未检测到浏览器钱包，请手动粘贴地址。','No browser wallet found. Paste an address manually.')+'</span>';return;
-    }
-    walletBtn.disabled=true;
-    try{
-      var accounts=await window.ethereum.request({method:'eth_requestAccounts'}), account=accounts&&accounts[0];
-      if(!account||!/^0x[0-9a-fA-F]{40}$/.test(account))throw new Error('No wallet account returned');
-      var current=(addrEl.value||'').trim();
-      addrEl.value=current?(current+'\n'+account):account;
-      var added=parseAddresses(addrEl.value);
-      if(!added.invalid.length&&added.valid.length<=MAX_WALLETS)saveWallets(added.valid);
-      st.innerHTML='<span class="dot"></span>'+SP('已填入当前钱包地址；不会签名或发送交易。点击“查询”开始读取。','Current wallet added. No signature or transaction will be requested. Click Check to read balances.')+'</span>';
-    }catch(e){
-      st.innerHTML='<span style="color:#ff9a8f">'+SP('钱包未连接或请求被取消。','Wallet connection was cancelled or unavailable.')+'</span>';
-    }finally{walletBtn.disabled=false;}
-  }
-
   async function mapLimit(list,limit,fn){
     var out=new Array(list.length),next=0,workers=[];
     for(var w=0;w<Math.min(limit,list.length);w++)workers.push((async function(){
@@ -371,7 +351,7 @@ h1 span{color:var(--white)}
     if(!addresses.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('请输入至少一个 0x 开头的 42 位钱包地址。','Enter at least one wallet address (0x plus 40 hex characters).')+'</span>';return;}
     if(addresses.length>MAX_WALLETS){st.innerHTML='<span style="color:#ff9a8f">'+SP('最多一次查询 '+MAX_WALLETS+' 个不同钱包地址。','Check up to '+MAX_WALLETS+' unique wallet addresses at a time.')+'</span>';return;}
     saveWallets(addresses);
-    busy=true;btn.disabled=true;walletBtn.disabled=true;btn.textContent=L('查询中…','Checking…');empty.style.display='none';res.innerHTML='';
+    busy=true;btn.disabled=true;btn.textContent=L('查询中…','Checking…');empty.style.display='none';res.innerHTML='';
     st.innerHTML='<span class="dot"></span>'+SP('读取 '+addresses.length+' 个钱包的双链数据…','Reading both chains for '+addresses.length+' wallet(s)…');
     try{
       var done=0;
@@ -406,16 +386,15 @@ h1 span{color:var(--white)}
         +' · '+new Date().toLocaleString(isZh()?'zh-CN':'en-US');
     }catch(e){
       st.innerHTML='<span style="color:#ff9a8f">'+L('查询失败：','Query failed: ')+esc(e&&e.message||L('网络波动','network error'))+L('。手机从本地文件查询受限，请通过 HTTPS 网页链接访问。','. Local-file queries are restricted on mobile; open the page from an HTTPS link.')+'</span>';
-    }finally{busy=false;btn.disabled=false;walletBtn.disabled=false;applyLang();}
+    }finally{busy=false;btn.disabled=false;applyLang();}
   }
 
   function applyLang(){
     if(addrEl)addrEl.placeholder=L('每行一个地址，也可用空格或逗号分隔','One address per line, or separate with spaces or commas');
     if(btn&&!busy)btn.textContent=L('查询总币量','Check total');
-    if(walletBtn)walletBtn.textContent=L('读取当前钱包','Use current wallet');
   }
   function start(){
-    applyLang();empty.style.display='block';btn.onclick=doQuery;walletBtn.onclick=addCurrentWallet;
+    applyLang();empty.style.display='block';btn.onclick=doQuery;
     var saved=loadSavedWallets();
     if(!(addrEl.value||'').trim()&&saved.length)addrEl.value=saved.join('\n');
     showSavedStatus(saved.length);
