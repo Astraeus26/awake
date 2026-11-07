@@ -173,6 +173,7 @@ h1 span{color:#effff3}
   <div class="qhint"><span data-lang="zh">每行一个地址，数量不限。查询后自动记住，下次打开会自动填入；仅保存在本机浏览器。</span><span data-lang="en">One address per line, no fixed limit. Addresses are saved on this device and restored next time.</span> <button class="clear-saved" id="clearSaved" type="button"><span data-lang="zh">清除已保存钱包</span><span data-lang="en">Clear saved wallets</span></button> <span class="saved-status" id="savedStatus"></span></div>
   <div class="status" id="status"></div>
   <div id="result"></div>
+  <div class="empty" id="empty"><span data-lang="zh">输入一个或多个钱包地址开始查询。</span><span data-lang="en">Enter one or more wallet addresses to start.</span></div>
 </div>
 
 <script>
@@ -402,7 +403,7 @@ h1 span{color:#effff3}
     if(parsed.invalid.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('有无效地址，请修正后再查：','Invalid address entries. Correct them before checking:')+' '+esc(parsed.invalid.slice(0,3).join(', '))+'</span>';return;}
     if(!addresses.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('请输入至少一个 0x 开头的 42 位钱包地址。','Enter at least one wallet address (0x plus 40 hex characters).')+'</span>';return;}
     saveWallets(addresses);
-    busy=true;btn.disabled=true;btn.textContent=L('查询中…','Checking…');empty.style.display='none';res.innerHTML='';
+    busy=true;btn.disabled=true;btn.textContent=L('查询中…','Checking…');if(empty)empty.style.display='none';res.innerHTML='';
     st.innerHTML='<span class="dot"></span>'+SP('读取 '+addresses.length+' 个钱包的双链数据…','Reading both chains for '+addresses.length+' wallet(s)…');
     try{
       var done=0;
@@ -445,7 +446,7 @@ h1 span{color:#effff3}
     if(btn&&!busy)btn.textContent=L('查询总币量','Check total');
   }
   function start(){
-    applyLang();empty.style.display='block';btn.onclick=doQuery;
+    applyLang();if(empty)empty.style.display='block';btn.onclick=doQuery;
     var saved=loadSavedWallets();
     if(!(addrEl.value||'').trim()&&saved.length)addrEl.value=saved.join('\n');
     showSavedStatus(saved.length);
