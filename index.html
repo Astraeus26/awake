@@ -4,9 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,follow">
-<title>双链钱包总币量查询 · Wallet Balance · Web3Origin</title>
+<title>双链钱包总币量查询 · Wallet Balance</title>
 <meta name="description" content="合并查询多个钱包在 Polygon 与 Anubis 的 LGNS、质押本金与所有未领取奖励。">
-<link rel="canonical" href="https://web3origin.com/tools/staking-query/">
 <style>
 :root{--bg:#08090c;--tile:#12151b;--tile2:#181d25;--line:#222833;--acc:#8fe36a;--acc2:#b6f36a;--gold2:#8fe36a;--txt:#e8edf2;--white:#fff;--dim:#8a94a1;--soft:#c2cad4;--green:#8fe36a;--red:#ff8b63;--blue:#8fd4ff;--poly:#b79bf0}
 [data-lang]{display:none!important}
@@ -102,12 +101,68 @@ h1 span{color:var(--white)}
 .chainsum small{display:block;color:var(--dim);font-size:11px;margin-top:3px}
 @media(max-width:520px){.qactions{width:100%;min-width:0}.qactions button{width:100%;min-height:48px}.wallet-total{gap:8px}.wallet-head{align-items:flex-start}}
 
+/* Cyber / Matrix visual layer */
+:root{--bg:#030806;--tile:rgba(8,19,15,.88);--tile2:rgba(10,25,19,.9);--line:rgba(94,255,154,.2);--acc:#70ff9b;--acc2:#c1ffd0;--gold2:#70ff9b;--green:#70ff9b;--blue:#83ffe1;--txt:#d7f5e2;--soft:#a9cbb4;--dim:#72927b}
+body{isolation:isolate;background-color:#020604;background-image:radial-gradient(ellipse at 50% -20%,rgba(20,106,56,.28),transparent 55%),radial-gradient(ellipse at 100% 55%,rgba(0,102,88,.11),transparent 42%)}
+#matrix-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.25}
+.wrap{position:relative;z-index:1;max-width:820px;padding:clamp(24px,5vw,52px) 18px 64px}
+.eyebrow{display:flex;align-items:center;gap:9px;margin:0 0 14px;color:#74ffa0;font:700 10px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase}
+.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:#70ff9b;box-shadow:0 0 12px #70ff9b;animation:signalPulse 1.8s ease-in-out infinite}
+.eyebrow-tag{margin-left:auto;border:1px solid rgba(112,255,155,.27);border-radius:99px;padding:5px 9px;color:#9edbb0;letter-spacing:.08em}
+h1{font-size:clamp(27px,5vw,40px);letter-spacing:.025em;text-shadow:0 0 24px rgba(112,255,155,.24)}
+h1 span{color:#effff3}
+.sub{max-width:760px;padding:12px 15px;border-left:2px solid rgba(112,255,155,.72);border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(112,255,155,.07),transparent);color:#9ab6a1;font-size:13px}
+.qbox{padding:12px;background:rgba(5,14,10,.78);border:1px solid rgba(112,255,155,.24);border-radius:19px;box-shadow:0 0 32px rgba(0,255,118,.055),inset 0 1px rgba(213,255,224,.035);backdrop-filter:blur(14px)}
+.qin{background:rgba(5,11,9,.94);border-color:rgba(112,255,155,.22);color:#d9ffe3;border-radius:13px;transition:border-color .2s,box-shadow .2s}
+.qin:focus{outline:none;border-color:rgba(112,255,155,.75);box-shadow:0 0 0 3px rgba(112,255,155,.09),0 0 22px rgba(112,255,155,.11)}
+.qbtn{position:relative;overflow:hidden;background:linear-gradient(135deg,#b4ffc6,#55f589 52%,#2bdc83);box-shadow:0 0 22px rgba(73,255,137,.22),inset 0 1px rgba(255,255,255,.65);transition:transform .18s,box-shadow .18s,filter .18s}
+.qbtn:hover{transform:translateY(-1px);filter:saturate(1.18);box-shadow:0 0 32px rgba(73,255,137,.38)}
+.qbtn:active{transform:translateY(1px)}
+.clear-saved{color:#7dffa5}
+.status{color:#8bb898}
+.status .dot{box-shadow:0 0 10px currentColor}
+.bento{gap:13px}
+.tile,.panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(11,28,19,.94),rgba(5,13,10,.94));border-color:rgba(112,255,155,.17);box-shadow:0 10px 36px rgba(0,0,0,.23),inset 0 1px rgba(220,255,230,.045);backdrop-filter:blur(12px)}
+.tile{border-radius:17px;transition:transform .22s,border-color .22s,box-shadow .22s}
+.tile:hover,.panel:hover{border-color:rgba(112,255,155,.4);box-shadow:0 12px 38px rgba(0,0,0,.3),0 0 22px rgba(72,255,133,.06)}
+.tile.big{background:radial-gradient(90% 160% at 100% 0%,rgba(63,255,133,.17),transparent 70%),linear-gradient(135deg,rgba(9,32,20,.97),rgba(4,14,10,.97));border-color:rgba(112,255,155,.33)}
+.tile.big:after{content:"";position:absolute;left:0;right:0;top:-40%;height:28%;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(112,255,155,.07),transparent);animation:scanSweep 8s linear infinite}
+.tile .k{color:#83a98e}
+.tile .v{color:#e8ffed;text-shadow:0 0 16px rgba(112,255,155,.08)}
+.tile.big .v{color:#d6ffe1;text-shadow:0 0 25px rgba(112,255,155,.2)}
+.chip span{background:rgba(4,15,10,.78);border-color:rgba(112,255,155,.15)}
+.chip b{color:#d7ffe1}
+.panel{border-radius:17px}
+.pill.anb{background:rgba(112,255,155,.1);border-color:rgba(112,255,155,.23)}
+.gt{color:#78ffa0}
+.rw{background:rgba(8,22,15,.84);border-color:rgba(112,255,155,.11)}
+.wallet-head{background:linear-gradient(110deg,rgba(12,32,21,.94),rgba(6,16,12,.94));border-color:rgba(112,255,155,.21);box-shadow:0 0 25px rgba(72,255,133,.05)}
+.wallet-total b,.chainsum a{color:#80ffa4}
+.chainsum{border-color:rgba(112,255,155,.16)}
+.foot{color:#617b68}
+@keyframes signalPulse{50%{opacity:.45;box-shadow:0 0 4px #70ff9b}}
+@keyframes scanSweep{0%{transform:translateY(0)}100%{transform:translateY(600%)}}
+@media(max-width:520px){
+  .wrap{padding:25px 14px calc(38px + env(safe-area-inset-bottom))}
+  .eyebrow{font-size:9px;letter-spacing:.12em}
+  .sub{font-size:12.5px}
+  .qbox{padding:9px;border-radius:16px}
+  .qin{min-height:136px}
+  .tile,.panel{backdrop-filter:blur(8px)}
+  .tile.big:after{animation-duration:11s}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  #matrix-bg{display:none}
+}
+
 </style>
 </head>
 <body>
 
+<canvas id="matrix-bg" aria-hidden="true"></canvas>
 <div class="wrap">
-  <noscript><div class="nojs">当前文件预览器不运行查询脚本。要在手机查询，需要把此页面发布到 HTTPS 网页后，从链接打开。</div></noscript>
+  <div class="eyebrow"><span class="eyebrow-dot"></span><span>ORIGIN // DUAL-CHAIN MONITOR</span><span class="eyebrow-tag">READ ONLY</span></div>
   <h1><span data-lang="zh">双链<span>钱包总币量</span></span><span data-lang="en">Dual-chain <span>Wallet Balance</span></span></h1>
   <div class="sub"><span data-lang="zh">输入一个或多个钱包地址，汇总 <b style="color:var(--gold2)">Polygon 与 Anubis 双链</b>的钱包 LGNS、活期与长期质押本金，以及锁仓、DAO、涡轮、蜘蛛网和销毁债券中未领取的 LGNS。只读查询，不签名、不发送交易。</span><span data-lang="en">Enter one or more wallet addresses to total wallet LGNS, flexible and long-term principal, and unclaimed rewards across <b style="color:var(--gold2)">Polygon and Anubis</b>. Read-only — no signature or transaction.</span></div>
 
@@ -115,19 +170,16 @@ h1 span{color:var(--white)}
     <textarea class="qin" id="addr" rows="3" spellcheck="false" autocomplete="off" placeholder="每行输入一个钱包地址"></textarea>
     <div class="qactions"><button class="qbtn" id="qbtn" type="button">查询总币量</button></div>
   </div>
-  <div class="qhint"><span data-lang="zh">每行一个地址，最多 10 个。查询后自动记住，下次打开会自动填入；仅保存在本机浏览器。</span><span data-lang="en">One address per line, up to 10. Checked addresses are saved on this device and restored next time.</span> <button class="clear-saved" id="clearSaved" type="button"><span data-lang="zh">清除已保存钱包</span><span data-lang="en">Clear saved wallets</span></button> <span class="saved-status" id="savedStatus"></span></div>
+  <div class="qhint"><span data-lang="zh">每行一个地址，数量不限。查询后自动记住，下次打开会自动填入；仅保存在本机浏览器。</span><span data-lang="en">One address per line, no fixed limit. Addresses are saved on this device and restored next time.</span> <button class="clear-saved" id="clearSaved" type="button"><span data-lang="zh">清除已保存钱包</span><span data-lang="en">Clear saved wallets</span></button> <span class="saved-status" id="savedStatus"></span></div>
   <div class="status" id="status"></div>
   <div id="result"></div>
-  <div class="empty" id="empty"><span data-lang="zh">输入一个或多个钱包地址开始查询。</span><span data-lang="en">Enter one or more wallet addresses to start.</span></div>
-
-  <div class="foot"><span data-lang="zh">只读链上查询 · 债券 DAI 本金单独显示 · 若文件预览器不运行查询，请通过 HTTPS 网页链接打开</span><span data-lang="en">Read-only lookup · DAI bond principal is separate · If file preview does not run queries, open this page from an HTTPS link.</span></div>
 </div>
 
 <script>
 (function(){
   "use strict";
   var busy=false;
-  var MAX_WALLETS=10, MAX_ITEMS=200;
+  var MAX_ITEMS=200;
 
   function isZh(){ return (document.documentElement.lang||'zh').toLowerCase().indexOf('zh')===0; }
   function L(zh,en){ return isZh()?zh:en; }
@@ -270,7 +322,7 @@ h1 span{color:var(--white)}
     try{
       var raw=JSON.parse(localStorage.getItem(WKEY)||'[]');
       var parsed=parseAddresses(Array.isArray(raw)?raw.join('\n'):'');
-      return parsed.invalid.length?[]:parsed.valid.slice(0,MAX_WALLETS);
+      return parsed.invalid.length?[]:parsed.valid;
     }catch(e){return [];}
   }
   function showSavedStatus(count){
@@ -349,7 +401,6 @@ h1 span{color:var(--white)}
     var parsed=parseAddresses(addrEl.value), addresses=parsed.valid;
     if(parsed.invalid.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('有无效地址，请修正后再查：','Invalid address entries. Correct them before checking:')+' '+esc(parsed.invalid.slice(0,3).join(', '))+'</span>';return;}
     if(!addresses.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('请输入至少一个 0x 开头的 42 位钱包地址。','Enter at least one wallet address (0x plus 40 hex characters).')+'</span>';return;}
-    if(addresses.length>MAX_WALLETS){st.innerHTML='<span style="color:#ff9a8f">'+SP('最多一次查询 '+MAX_WALLETS+' 个不同钱包地址。','Check up to '+MAX_WALLETS+' unique wallet addresses at a time.')+'</span>';return;}
     saveWallets(addresses);
     busy=true;btn.disabled=true;btn.textContent=L('查询中…','Checking…');empty.style.display='none';res.innerHTML='';
     st.innerHTML='<span class="dot"></span>'+SP('读取 '+addresses.length+' 个钱包的双链数据…','Reading both chains for '+addresses.length+' wallet(s)…');
@@ -402,6 +453,39 @@ h1 span{color:var(--white)}
     addrEl.addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();doQuery();}});
     try{var q=new URLSearchParams(location.search).get('addr');if(q){addrEl.value=q;doQuery();}}catch(e){}
   }
+  function initMatrix(){
+    var canvas=document.getElementById('matrix-bg');
+    if(!canvas||!canvas.getContext||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    var ctx=canvas.getContext('2d');if(!ctx)return;
+    var width=0,height=0,dpr=1,font=14,step=22,drops=[],last=0;
+    var glyphs='01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン<>/';
+    function resize(){
+      dpr=Math.min(window.devicePixelRatio||1,1.5);
+      width=window.innerWidth;height=window.innerHeight;
+      canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      font=width<600?12:14;step=width<600?27:22;
+      var columns=Math.ceil(width/step);
+      drops=Array.from({length:columns},function(){return Math.random()*-height/font;});
+      ctx.font=font+'px ui-monospace,Menlo,monospace';
+    }
+    function frame(now){
+      requestAnimationFrame(frame);
+      if(document.hidden||now-last<48)return;
+      last=now;
+      ctx.fillStyle='rgba(2,6,4,0.13)';ctx.fillRect(0,0,width,height);
+      ctx.font=font+'px ui-monospace,Menlo,monospace';
+      for(var i=0;i<drops.length;i++){
+        var y=drops[i]*font;
+        ctx.fillStyle=Math.random()>.94?'rgba(192,255,210,.88)':'rgba(82,255,137,.58)';
+        ctx.fillText(glyphs.charAt((Math.random()*glyphs.length)|0),i*step,y);
+        if(y>height&&Math.random()>.982)drops[i]=Math.random()*-18;
+        else drops[i]+=.55+Math.random()*.45;
+      }
+    }
+    resize();window.addEventListener('resize',resize,{passive:true});requestAnimationFrame(frame);
+  }
+  initMatrix();
   start();
 })();
 </script>
