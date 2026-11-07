@@ -2,492 +2,1205 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,follow">
-<title>双链钱包总币量查询 · Wallet Balance</title>
-<meta name="description" content="合并查询多个钱包在 Polygon 与 Anubis 的 LGNS、质押本金与所有未领取奖励。">
+<meta name="color-scheme" content="dark">
+<title>双链 LGNS 总币量查询 · 持仓 + 金本位债券</title>
+<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、热身期、各期锁仓现值（含锁仓收益），以及金本位债券应收 LGNS。">
 <style>
-:root{--bg:#08090c;--tile:#12151b;--tile2:#181d25;--line:#222833;--acc:#8fe36a;--acc2:#b6f36a;--gold2:#8fe36a;--txt:#e8edf2;--white:#fff;--dim:#8a94a1;--soft:#c2cad4;--green:#8fe36a;--red:#ff8b63;--blue:#8fd4ff;--poly:#b79bf0}
-[data-lang]{display:none!important}
-html[lang^="zh"] [data-lang="zh"],html:not([lang^="zh"]) [data-lang="en"]{display:revert!important}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(700px 420px at 88% -6%,rgba(143,227,106,.09),transparent),var(--bg);color:var(--txt);font:14.5px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,"Segoe UI",sans-serif;min-height:100vh}
-.wrap{max-width:720px;margin:0 auto;padding:22px 15px 60px}
-h1{font-size:23px;margin:0 0 3px;color:var(--white);font-weight:800}
-h1 span{color:var(--white)}
-.sub{color:var(--dim);font-size:12.5px;margin-bottom:16px;line-height:1.6}
-.qbox{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:8px}
-.qin{flex:1;min-width:200px;background:var(--tile);border:1px solid var(--line);color:var(--soft);border-radius:14px;padding:13px 15px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace;min-height:46px}
-.qbtn{background:linear-gradient(180deg,var(--acc2),var(--acc));border:none;color:#0c2405;border-radius:14px;padding:11px 24px;font-size:14.5px;font-weight:800;cursor:pointer;min-height:46px}
-.qbtn:disabled{opacity:.55;cursor:default}
-.qhint{color:var(--dim);font-size:12px;margin-bottom:12px}
-.nojs{color:#ffe39a;background:#282314;border:1px solid #514421;border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:13px;line-height:1.6}
-.clear-saved{appearance:none;background:none;border:0;color:var(--acc);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 6px;min-height:36px}
-.saved-status{color:var(--dim);font-size:11px}
-.status{color:var(--dim);font-size:13px;min-height:20px;margin:6px 0 14px}
-.status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:middle}
-/* ===== Bento 网格 ===== */
-.bento{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.tile{background:var(--tile);border:1px solid var(--line);border-radius:20px;padding:18px}
-.tile.big{grid-column:1/3;background:radial-gradient(120% 130% at 90% -10%,rgba(143,227,106,.16),transparent 60%),var(--tile)}
-.tile .ic{font-size:19px;opacity:.9}
-.tile .k{color:var(--dim);font-size:12px;margin:9px 0 5px}
-.tile .v{font-size:20px;font-weight:800;color:var(--white);word-break:break-all}
-.tile.big .k{font-size:13px;margin-top:0}
-.tile.big .v{font-size:38px;letter-spacing:-.5px}.tile.big .v .u{font-size:16px;color:var(--acc);margin-left:5px}
-.tile .v.g{color:var(--acc)}.tile .v.o{color:var(--red)}
-.tile .subd{color:var(--dim);font-size:11.5px;margin-top:6px}
-.chip{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.chip span{background:var(--tile2);border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:11.5px;color:var(--soft)}.chip b{color:var(--white)}
-.panel{grid-column:1/3;background:var(--tile);border:1px solid var(--line);border-radius:20px;padding:18px}
-.panel-h{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:800;color:var(--white);margin-bottom:6px;flex-wrap:wrap}
-.panel-h .blk{color:var(--dim);font-size:11px;font-weight:400}
-.pill{font-size:11px;font-weight:800;padding:3px 11px;border-radius:8px}
-.pill.anb{background:rgba(143,227,106,.14);color:var(--acc);border:1px solid var(--line)}
-.pill.poly{background:rgba(130,71,229,.18);color:var(--poly);border:1px solid rgba(130,71,229,.4)}
-.gt{font-size:12.5px;color:var(--acc);font-weight:700;margin:14px 0 7px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.gt.bond{color:var(--red)}.gt.gift{color:var(--blue)}
-.gt b{color:var(--soft);font-weight:600}
-.rw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:var(--tile2);border:1px solid var(--line);border-radius:12px;margin-bottom:6px}
-.rw .l{font-weight:700;color:var(--white);font-size:13.5px}.rw .l small{color:var(--dim);font-weight:400;margin-left:6px;font-size:12px}
-.rw .r{text-align:right;font-size:12px;color:var(--dim);flex:none}.rw .r b{color:var(--acc)}
-.rw.reward .l{color:var(--soft)}.rw.reward b{color:var(--white);font-weight:800;font-size:15px}
-.badge{flex:none;font-size:10.5px;font-weight:800;padding:2px 9px;border-radius:8px;background:rgba(143,227,106,.16);color:var(--acc);border:1px solid var(--line)}
-.badge.off{background:#12160f;color:var(--dim);border-color:var(--line)}
-.mono{font-variant-numeric:tabular-nums}
-.emptyg{color:var(--dim);font-size:12px;padding:4px 2px}
-.chainsum{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid var(--line);font-size:13.5px;color:var(--soft)}
-.chainsum b{color:var(--white);font-weight:800}
-.chainsum a{color:var(--acc);text-decoration:none;font-size:12.5px;font-weight:700}
-.err{color:#ff9a8f;font-size:12px;margin-top:8px}
-.empty{color:var(--dim);text-align:center;padding:26px 12px;font-size:13.5px;line-height:1.8}
-.note{color:var(--dim);font-size:12px;background:var(--tile);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-top:16px;line-height:1.75}
-.note code{color:var(--soft)}
-.foot{color:var(--dim);font-size:12px;text-align:center;margin-top:22px;line-height:1.8}
-@media(max-width:520px){
-  body{font-size:14px}
-  .wrap{padding:20px 13px calc(34px + env(safe-area-inset-bottom))}
-  h1{font-size:22px;line-height:1.3;margin-bottom:8px}
-  .sub{font-size:13px;margin-bottom:17px}
-  .qbox{display:flex;flex-direction:column;gap:9px}
-  .qin{font-size:16px;min-width:0;width:100%;padding:13px 14px}
-  #addr{min-height:126px}
-  .qactions{width:100%;min-width:0;flex-direction:column}
-  .qactions button{width:100%;min-height:48px}
-  .qhint{line-height:1.65}
-  .bento{grid-template-columns:1fr;gap:9px}
-  .tile.big,.panel{grid-column:auto}
-  .tile{border-radius:16px;padding:15px}
-  .tile.big .v{font-size:34px;line-height:1.2;overflow-wrap:anywhere}
-  .tile .v{font-size:19px}
-  .panel{border-radius:16px;padding:14px}
-  .rw{align-items:flex-start;padding:10px}
-  .rw .l{min-width:0;overflow-wrap:anywhere}
-  .rw .l small{display:block;margin:4px 0 0}
-  .rw .r{white-space:normal;max-width:46%;overflow-wrap:anywhere}
-  .wallet-total{width:100%;justify-content:space-between}
-  .wallet-address .mono{font-size:10px}
-  .chainsum{align-items:flex-start}
-  .chainsum a{min-height:40px;display:inline-flex;align-items:center}
+:root{
+  --bg:#0d1a2c;
+  --panel:rgba(40,66,100,.78);
+  --panel-2:rgba(34,56,86,.9);
+  --line:rgba(160,210,255,.18);
+  --line-2:rgba(160,210,255,.34);
+  --ink:#e9f3ff;
+  --ink-2:#b6cade;
+  --dim:#8299b0;
+  --acc:#9ad6ff;
+  --acc-2:#dcf0ff;
+  --poly:#b9a3ff;
+  --anb:#7cc8ff;
+  --warn:#ffb37a;
+  --bad:#ff8f80;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
 }
-
-.qin{resize:vertical;line-height:1.5}
-#addr{min-height:104px}
-.qactions{display:flex;flex-direction:column;gap:8px;min-width:138px}
-.wallet-head{background:var(--tile2);border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin:13px 0 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.wallet-address{font-weight:750}.wallet-address .mono{display:block;color:var(--dim);font-size:11px;font-weight:400;overflow-wrap:anywhere}
-.wallet-total{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--soft);font-size:12px}
-.wallet-total b{color:var(--acc);font-size:14px}
-.chainsum small{display:block;color:var(--dim);font-size:11px;margin-top:3px}
-@media(max-width:520px){.qactions{width:100%;min-width:0}.qactions button{width:100%;min-height:48px}.wallet-total{gap:8px}.wallet-head{align-items:flex-start}}
-
-/* Cyber / Matrix visual layer */
-:root{--bg:#030806;--tile:rgba(8,19,15,.88);--tile2:rgba(10,25,19,.9);--line:rgba(94,255,154,.2);--acc:#70ff9b;--acc2:#c1ffd0;--gold2:#70ff9b;--green:#70ff9b;--blue:#83ffe1;--txt:#d7f5e2;--soft:#a9cbb4;--dim:#72927b}
-body{isolation:isolate;background-color:#020604;background-image:radial-gradient(ellipse at 50% -20%,rgba(20,106,56,.28),transparent 55%),radial-gradient(ellipse at 100% 55%,rgba(0,102,88,.11),transparent 42%)}
-#matrix-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.25}
-.wrap{position:relative;z-index:1;max-width:820px;padding:clamp(24px,5vw,52px) 18px 64px}
-.eyebrow{display:flex;align-items:center;gap:9px;margin:0 0 14px;color:#74ffa0;font:700 10px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase}
-.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:#70ff9b;box-shadow:0 0 12px #70ff9b;animation:signalPulse 1.8s ease-in-out infinite}
-.eyebrow-tag{margin-left:auto;border:1px solid rgba(112,255,155,.27);border-radius:99px;padding:5px 9px;color:#9edbb0;letter-spacing:.08em}
-h1{font-size:clamp(27px,5vw,40px);letter-spacing:.025em;text-shadow:0 0 24px rgba(112,255,155,.24)}
-h1 span{color:#effff3}
-.sub{max-width:760px;padding:12px 15px;border-left:2px solid rgba(112,255,155,.72);border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(112,255,155,.07),transparent);color:#9ab6a1;font-size:13px}
-.qbox{padding:12px;background:rgba(5,14,10,.78);border:1px solid rgba(112,255,155,.24);border-radius:19px;box-shadow:0 0 32px rgba(0,255,118,.055),inset 0 1px rgba(213,255,224,.035);backdrop-filter:blur(14px)}
-.qin{background:rgba(5,11,9,.94);border-color:rgba(112,255,155,.22);color:#d9ffe3;border-radius:13px;transition:border-color .2s,box-shadow .2s}
-.qin:focus{outline:none;border-color:rgba(112,255,155,.75);box-shadow:0 0 0 3px rgba(112,255,155,.09),0 0 22px rgba(112,255,155,.11)}
-.qbtn{position:relative;overflow:hidden;background:linear-gradient(135deg,#b4ffc6,#55f589 52%,#2bdc83);box-shadow:0 0 22px rgba(73,255,137,.22),inset 0 1px rgba(255,255,255,.65);transition:transform .18s,box-shadow .18s,filter .18s}
-.qbtn:hover{transform:translateY(-1px);filter:saturate(1.18);box-shadow:0 0 32px rgba(73,255,137,.38)}
-.qbtn:active{transform:translateY(1px)}
-.clear-saved{color:#7dffa5}
-.status{color:#8bb898}
-.status .dot{box-shadow:0 0 10px currentColor}
-.bento{gap:13px}
-.tile,.panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(11,28,19,.94),rgba(5,13,10,.94));border-color:rgba(112,255,155,.17);box-shadow:0 10px 36px rgba(0,0,0,.23),inset 0 1px rgba(220,255,230,.045);backdrop-filter:blur(12px)}
-.tile{border-radius:17px;transition:transform .22s,border-color .22s,box-shadow .22s}
-.tile:hover,.panel:hover{border-color:rgba(112,255,155,.4);box-shadow:0 12px 38px rgba(0,0,0,.3),0 0 22px rgba(72,255,133,.06)}
-.tile.big{background:radial-gradient(90% 160% at 100% 0%,rgba(63,255,133,.17),transparent 70%),linear-gradient(135deg,rgba(9,32,20,.97),rgba(4,14,10,.97));border-color:rgba(112,255,155,.33)}
-.tile.big:after{content:"";position:absolute;left:0;right:0;top:-40%;height:28%;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(112,255,155,.07),transparent);animation:scanSweep 8s linear infinite}
-.tile .k{color:#83a98e}
-.tile .v{color:#e8ffed;text-shadow:0 0 16px rgba(112,255,155,.08)}
-.tile.big .v{color:#d6ffe1;text-shadow:0 0 25px rgba(112,255,155,.2)}
-.chip span{background:rgba(4,15,10,.78);border-color:rgba(112,255,155,.15)}
-.chip b{color:#d7ffe1}
-.panel{border-radius:17px}
-.pill.anb{background:rgba(112,255,155,.1);border-color:rgba(112,255,155,.23)}
-.gt{color:#78ffa0}
-.rw{background:rgba(8,22,15,.84);border-color:rgba(112,255,155,.11)}
-.wallet-head{background:linear-gradient(110deg,rgba(12,32,21,.94),rgba(6,16,12,.94));border-color:rgba(112,255,155,.21);box-shadow:0 0 25px rgba(72,255,133,.05)}
-.wallet-total b,.chainsum a{color:#80ffa4}
-.chainsum{border-color:rgba(112,255,155,.16)}
-.foot{color:#617b68}
-@keyframes signalPulse{50%{opacity:.45;box-shadow:0 0 4px #70ff9b}}
-@keyframes scanSweep{0%{transform:translateY(0)}100%{transform:translateY(600%)}}
-@media(max-width:520px){
-  .wrap{padding:25px 14px calc(38px + env(safe-area-inset-bottom))}
-  .eyebrow{font-size:9px;letter-spacing:.12em}
-  .sub{font-size:12.5px}
-  .qbox{padding:9px;border-radius:16px}
-  .qin{min-height:136px}
-  .tile,.panel{backdrop-filter:blur(8px)}
-  .tile.big:after{animation-duration:11s}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  min-height:100vh;color:var(--ink);
+  font:14.5px/1.62 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  background:
+    radial-gradient(940px 560px at 82% -12%,rgba(94,176,255,.30),transparent 66%),
+    radial-gradient(740px 520px at 6% 8%,rgba(150,212,255,.14),transparent 64%),
+    linear-gradient(180deg,#05080e,#04070c 60%,#03050a);
+  background-attachment:fixed;
 }
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-  #matrix-bg{display:none}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:linear-gradient(rgba(140,200,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(140,200,255,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 78%);
+  -webkit-mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 78%);
 }
+.shell{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:clamp(22px,4.6vw,46px) 16px 72px}
 
+/* ---------- 头部 ---------- */
+.eyebrow{display:flex;align-items:center;gap:9px;font:700 10px/1.3 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#9dd8ff;margin-bottom:14px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc);animation:pulse 2.2s ease-in-out infinite}
+.eyebrow .tag{margin-left:auto;border:1px solid rgba(124,200,255,.28);border-radius:99px;padding:4px 9px;color:#a3d4f5;letter-spacing:.08em}
+@keyframes pulse{50%{opacity:.4;box-shadow:0 0 3px var(--acc)}}
+h1{margin:0 0 8px;font-size:clamp(25px,4.6vw,34px);line-height:1.24;letter-spacing:.01em;font-weight:800}
+h1 em{font-style:normal;background:linear-gradient(96deg,#cfe9ff,#7cc8ff 60%,#4aa8f5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{margin:0 0 20px;padding:12px 15px;border-left:2px solid rgba(124,200,255,.6);border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(124,200,255,.075),transparent);color:#93a9bf;font-size:13px}
+.lede b{color:#d2e6fa;font-weight:600}
+
+/* ---------- 输入 ---------- */
+.qcard{position:relative;padding:12px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.45),inset 0 1px rgba(220,238,255,.04)}
+textarea.q{
+  display:block;width:100%;min-height:92px;resize:vertical;padding:13px 14px;
+  color:#d9ecff;background:rgba(22,38,60,.86);border:1px solid rgba(124,200,255,.18);border-radius:12px;
+  font:13px/1.6 var(--mono);letter-spacing:.2px;transition:border-color .18s,box-shadow .18s;
+}
+textarea.q::placeholder{color:#4f6579}
+textarea.q:focus{outline:none;border-color:rgba(124,200,255,.62);box-shadow:0 0 0 3px rgba(124,200,255,.1)}
+.qrow{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer}
+.btn{
+  flex:1 1 auto;min-height:46px;padding:11px 22px;border-radius:12px;border:1px solid transparent;
+  font-weight:800;font-size:14.5px;color:#04213a;
+  background:linear-gradient(135deg,#d9efff,#7cc8ff 55%,#3f9bff);
+  box-shadow:0 8px 24px rgba(70,160,255,.22),inset 0 1px rgba(255,255,255,.6);
+  transition:transform .16s,box-shadow .16s,filter .16s;
+}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 30px rgba(70,160,255,.32)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.55;cursor:default;filter:saturate(.7)}
+.btn.ghost{
+  flex:0 0 auto;color:#a9c8e0;background:rgba(34,56,86,.8);border-color:rgba(124,200,255,.22);
+  box-shadow:none;font-weight:600;font-size:13px;padding:11px 16px;
+}
+.btn.ghost:hover{color:#d9ecff;border-color:rgba(124,200,255,.45)}
+.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px;color:var(--dim);font-size:11.5px}
+.meta .sp{flex:1 1 100%;height:0}
+.meta button{background:none;border:0;color:#86cdff;font-size:11.5px;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
+.status{margin:14px 0 0;font-size:13px;color:#8fa9c1;min-height:20px}
+.status.live{color:#b9ddff}
+.status.err{color:var(--bad)}
+.spin{display:inline-block;width:12px;height:12px;margin-right:7px;vertical-align:-1px;border:2px solid rgba(124,200,255,.25);border-top-color:var(--acc);border-radius:50%;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ---------- 概要 ---------- */
+.hero{
+  margin-top:18px;padding:20px;border-radius:20px;border:1px solid rgba(124,200,255,.28);
+  background:radial-gradient(90% 150% at 100% 0%,rgba(70,160,255,.16),transparent 62%),linear-gradient(150deg,rgba(14,30,50,.9),rgba(26,44,70,.92));
+  box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 1px rgba(220,238,255,.06);
+  display:grid;grid-template-columns:1.35fr .9fr;gap:18px;align-items:end;
+}
+.hero .k{font-size:12px;color:#8fb2cf;letter-spacing:.03em;display:flex;align-items:center;gap:7px}
+.hero .k i{font-style:normal;font-size:10px;padding:2px 7px;border-radius:6px;background:rgba(124,200,255,.14);color:#9dd8ff;border:1px solid rgba(124,200,255,.25)}
+.hero .v{margin:6px 0 4px;font:800 clamp(30px,6.6vw,44px)/1.05 var(--mono);letter-spacing:-.5px;color:#eaf4ff;text-shadow:0 0 34px rgba(124,200,255,.28)}
+.hero .v small{font-size:.42em;letter-spacing:0;color:var(--acc);margin-left:6px;font-weight:700}
+.hero .eq{font-size:11.5px;color:#7d94aa}
+.hero-side{display:grid;gap:8px}
+.mini{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 12px;border-radius:11px;background:rgba(34,56,86,.66);border:1px solid rgba(140,200,255,.1)}
+.mini span{font-size:11.5px;color:#89a3bd}
+.mini b{font:700 14px/1 var(--mono);color:#e2f0ff}
+.mini.mute b{color:#a8c2d8;font-weight:600}
+.split{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.ent span{min-width:0;overflow-wrap:anywhere}
+.bar{position:relative;padding:10px 12px;border-radius:12px;background:rgba(32,53,82,.62);border:1px solid rgba(140,200,255,.1);overflow:hidden}
+.bar .t{display:flex;justify-content:space-between;font-size:11.5px;color:#8fa9c1;margin-bottom:7px}
+.bar .t b{font-family:var(--mono);color:#d9ecff}
+.bar .track{height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+.bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(178,140,246,.9),rgba(124,200,255,.9));transition:width .6s cubic-bezier(.2,.7,.3,1)}
+
+/* ---------- 钱包 / 链卡 ---------- */
+.wallet{margin-top:22px}
+.wallet-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:14px;background:linear-gradient(110deg,rgba(34,56,86,.9),rgba(6,12,20,.92));border:1px solid var(--line);margin-bottom:11px}
+.who{font-weight:750;font-size:14px;display:flex;align-items:center;gap:8px}
+.who .addr{font:400 11px/1 var(--mono);color:var(--dim);letter-spacing:.2px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who button{background:none;border:0;color:#6f93b5;font-size:11px;padding:2px 4px}
+.who button:hover{color:var(--acc)}
+.wallet-sum{margin-left:auto;display:flex;align-items:baseline;gap:10px;font-size:12px;color:#93aec5;flex-wrap:wrap;justify-content:flex-end}
+.wallet-sum b{font:800 16px/1 var(--mono);color:var(--acc-2)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:11px}
+@media(min-width:880px){.grid{grid-template-columns:1fr 1fr}}
+
+.card{position:relative;padding:16px;border-radius:17px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);box-shadow:0 14px 40px rgba(0,0,0,.32),inset 0 1px rgba(220,238,255,.035)}
+.card:hover{border-color:rgba(124,200,255,.24)}
+.ch{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.pill{font:800 10.5px/1 var(--mono);letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid}
+.pill.poly{color:#cdb9ff;background:rgba(130,71,229,.16);border-color:rgba(178,140,246,.35)}
+.pill.anb{color:#9dd8ff;background:rgba(124,200,255,.12);border-color:rgba(124,200,255,.3)}
+.ch .tot{margin-left:auto;text-align:right;line-height:1.25}
+.ch .tot span{display:block;font-size:10.5px;color:#7d94aa}
+.ch .tot b{font:800 15px/1.2 var(--mono);color:#eaf3ff}
+.ch a.verify{flex-basis:100%;font-size:11px;color:#6f93b5;text-decoration:none;margin-top:-2px}
+.ch a.verify:hover{color:var(--acc)}
+
+.sec{margin-top:14px}
+.sec-h{display:flex;align-items:center;gap:7px;font:700 11px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#7fa0bb;margin-bottom:8px}
+.sec-h .hint{margin-left:auto;font:600 10px/1 var(--mono);letter-spacing:0;text-transform:none;padding:3px 7px;border-radius:6px;background:rgba(124,200,255,.1);color:#9dd8ff}
+.sec-h .hint.off{background:rgba(255,179,122,.1);color:#ffc79a}
+
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 11px;border-radius:10px;background:rgba(34,56,86,.6);border:1px solid rgba(140,200,255,.075);margin-bottom:6px}
+.row:last-child{margin-bottom:0}
+.row .l{font-size:13px;color:#cfe0ef;min-width:0}
+.row .l small{display:block;color:#8ba1b8;font-size:11px;margin-top:2px}
+.row .r{font:600 13px/1.35 var(--mono);color:#eaf4ff;white-space:nowrap;text-align:right}
+.row .r em{font-style:normal;color:#6c8299;font-size:10.5px;margin-left:4px}
+.row.sum{background:rgba(124,200,255,.07);border-color:rgba(124,200,255,.22)}
+.row.sum .l{font-weight:700;color:#eaf4ff}
+.row.sum .r{color:var(--acc);font-weight:800;font-size:14px}
+.row.zero .r{color:#5e7488}
+.row.pend .r{color:#ffc79a}
+
+details{margin-top:6px;border-radius:12px;background:rgba(32,53,82,.52);border:1px solid rgba(140,200,255,.09)}
+details>summary{list-style:none;cursor:pointer;padding:9px 12px;font-size:12.5px;color:#b7d3e6;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(124,200,255,.07),transparent 70%);border-radius:11px}
+details[open]>summary{border-bottom:1px solid rgba(140,200,255,.1);border-radius:11px 11px 0 0}
+details>summary::-webkit-details-marker{display:none}
+details>summary:before{content:"▸";color:#7cc8ff;font-size:10px;transition:transform .18s}
+details[open]>summary:before{transform:rotate(90deg)}
+details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
+.dbody{padding:0 12px 12px}
+.lock{padding:10px 0;border-top:1px dashed rgba(140,200,255,.12)}
+.lock:first-child{border-top:0;padding-top:0}
+.lock-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:12.5px;color:#dceaf9;margin-bottom:6px}
+.lock-h .m{font:600 12px var(--mono);color:#a9d6f5;white-space:nowrap}
+.ent{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;color:#93aac2;padding:4px 0 4px 9px;border-left:2px solid rgba(124,200,255,.18)}
+.ent b{font-family:var(--mono);color:#cfe4f2;font-weight:600}
+.ent .rr{text-align:right;white-space:nowrap}
+.ent .rr b{color:#ffc79a}
+
+.tagline{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.tagline span{font-size:10.5px;padding:3px 8px;border-radius:6px;background:rgba(34,56,86,.66);border:1px solid rgba(140,200,255,.1);color:#8fa9c1}
+.tagline span b{color:#d9ecff;font-family:var(--mono)}
+
+.note{color:#7d94aa;font-size:11.5px;line-height:1.7;margin-top:12px}
+.note b{color:#b6cfe0}
+.errbox{margin-top:12px;padding:9px 12px;border-radius:10px;background:rgba(255,143,128,.08);border:1px solid rgba(255,143,128,.25);color:#ffb3a7;font-size:11.5px;line-height:1.6}
+
+.empty{margin-top:20px;padding:34px 18px;text-align:center;color:#6c8299;font-size:13px;line-height:1.9;border:1px dashed rgba(140,200,255,.16);border-radius:16px}
+.foot{margin-top:26px;text-align:center;color:#5c7186;font-size:11.5px;line-height:1.9;overflow-wrap:anywhere}
+.foot a{color:#6f93b5}
+
+@media(max-width:720px){
+  .hero{grid-template-columns:1fr;gap:14px}
+  .hero .v{font-size:clamp(30px,9vw,40px)}
+  .split{grid-template-columns:1fr}
+  .wallet-sum{margin-left:0;width:100%}
+  .row .r{font-size:12.5px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
+<div class="shell">
+  <div class="eyebrow"><span class="dot"></span><span>ORIGIN · DUAL-CHAIN HOLDINGS</span><span class="tag">READ ONLY</span></div>
+  <h1>双链 <em>LGNS 总币量</em></h1>
+  <p class="lede">
+    汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的全部 LGNS：钱包余额、活期 sLGNS、热身期待质押、各期锁仓现值，
+    <b>ILO 系列仓位</b>（A 币各期质押、金库等）、<b>金本位债券</b>（销毁债券 / 固定价值债券 / DAI·USDT·LP 等）的应收 LGNS，以及<b>涡轮、蛛网、DAO</b> 等独立奖励的待领。
+    锁仓现值按 gons 实时折算、<b>已含锁仓内产生的收益</b>，这部分不再重复叠加。纯链上只读，不签名、不发送交易。
+  </p>
 
-<canvas id="matrix-bg" aria-hidden="true"></canvas>
-<div class="wrap">
-  <div class="eyebrow"><span class="eyebrow-dot"></span><span>ORIGIN // DUAL-CHAIN MONITOR</span><span class="eyebrow-tag">READ ONLY</span></div>
-  <h1><span data-lang="zh">双链<span>钱包总币量</span></span><span data-lang="en">Dual-chain <span>Wallet Balance</span></span></h1>
-  <div class="sub"><span data-lang="zh">输入一个或多个钱包地址，汇总 <b style="color:var(--gold2)">Polygon 与 Anubis 双链</b>的钱包 LGNS、活期与长期质押本金，以及锁仓、DAO、涡轮、蜘蛛网和销毁债券中未领取的 LGNS。只读查询，不签名、不发送交易。</span><span data-lang="en">Enter one or more wallet addresses to total wallet LGNS, flexible and long-term principal, and unclaimed rewards across <b style="color:var(--gold2)">Polygon and Anubis</b>. Read-only — no signature or transaction.</span></div>
-
-  <div class="qbox">
-    <textarea class="qin" id="addr" rows="3" spellcheck="false" autocomplete="off" placeholder="每行输入一个钱包地址"></textarea>
-    <div class="qactions"><button class="qbtn" id="qbtn" type="button">查询总币量</button></div>
+  <div class="qcard">
+    <label for="addr" style="position:absolute;left:-9999px">钱包地址</label>
+    <textarea id="addr" class="q" spellcheck="false" autocomplete="off" placeholder="粘贴钱包地址，每行一个（也可用空格、逗号分隔）"></textarea>
+    <div class="qrow">
+      <button class="btn" id="go" type="button">查询持仓</button>
+      <button class="btn ghost" id="clear" type="button">清空</button>
+    </div>
+    <div class="meta">
+      <span id="saved"></span>
+      <button id="forget" type="button">清除本机记忆的钱包</button>
+      <span class="sp"></span>
+      <span>⌘/Ctrl + Enter 快速查询</span>
+    </div>
   </div>
-  <div class="qhint"><span data-lang="zh">每行一个地址，数量不限。查询后自动记住，下次打开会自动填入；仅保存在本机浏览器。</span><span data-lang="en">One address per line, no fixed limit. Addresses are saved on this device and restored next time.</span> <button class="clear-saved" id="clearSaved" type="button"><span data-lang="zh">清除已保存钱包</span><span data-lang="en">Clear saved wallets</span></button> <span class="saved-status" id="savedStatus"></span></div>
+
   <div class="status" id="status"></div>
-  <div id="result"></div>
-  <div class="empty" id="empty"><span data-lang="zh">输入一个或多个钱包地址开始查询。</span><span data-lang="en">Enter one or more wallet addresses to start.</span></div>
+  <div id="out"></div>
+  <div class="empty" id="empty">输入钱包地址开始查询 · 支持多钱包同时汇总</div>
+
+  <div class="foot">
+    数据源：Polygon / Anubis 链上合约（eth_call，分批读取）· 只读查询 · 不需要连接钱包<br>
+    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 热身期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 金本位债券应收 LGNS + 涡轮/蛛网/DAO 待领<br>
+    锁仓「已计息」已包含在锁仓现值里，只作参考、不重复相加；债券与涡轮等奖励来自独立合约，领取不影响持仓，照实相加<br>
+    覆盖：两链 LGNS / sLGNS、质押池热身期、Polygon 7 类锁仓（60/120/240/360/360V2/600 天 + 能量值）、Anubis 2 类长期锁仓、
+    17 类债券、7 个奖励合约、钱包内 DAI / USDT / WBTC / wETH / A / LP / GLGNS 等代币；NFT、彩票、ILO、治理类不产生 LGNS 余额，未计入数量统计
+  </div>
 </div>
 
 <script>
-(function(){
-  "use strict";
-  var busy=false;
-  var MAX_ITEMS=200;
+(function () {
+  'use strict';
 
-  function isZh(){ return (document.documentElement.lang||'zh').toLowerCase().indexOf('zh')===0; }
-  function L(zh,en){ return isZh()?zh:en; }
-  function SP(zh,en){ return '<span data-lang="zh">'+zh+'</span><span data-lang="en">'+en+'</span>'; }
-
-  var CHAINS={
-    polygon:{name:'Polygon',cls:'poly',chainId:137,explorer:'https://polygonscan.com/address/',
-      rpcs:['https://polygon-bor-rpc.publicnode.com','https://polygon.drpc.org','https://polygon-rpc.com'],
-      lgns:'0xeB51D9A39AD5EEF215dC0Bf39a8821ff804A0F01',
-      sLGNS:'0x99a57E6C8558BC6689f894e068733ADf83C19725',
-      lockStakes:[{label:'铸造·360天质押',en:'Mint · 360-day stake',addr:'0x6652d0f0D7aEc5070804E55b7023d32B9Bbc4190'},{label:'铸造·能量值质押（销毁 LGNS）',en:'Mint · Energy stake (burns LGNS)',addr:'0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07'}],
-      bonds:[]},
-    anubis:{name:'Anubis',cls:'anb',chainId:6714,explorer:'https://browser.anubispace.org/address/',
-      rpcs:['https://rpc.anubispace.org'],
-      lgns:'0x4D1D808a081FdAc440703b3765FC61f8028C06B8',
-      sLGNS:'0x2243aE29F73137d678197b61B0621AE942845B8C',
-      lockStakes:[{label:'360长期质押',en:'360-day stake',addr:'0x88ea98af226Cd4402A3873400308a4D78784eCE6'},{label:'600天质押',en:'600-day stake',addr:'0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f'},{label:'能量值质押',en:'Energy stake',addr:'0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E'}],
-      bonds:[{label:'销毁债券',en:'Burn bond',addr:'0x11b10c9827c5b7071e96fcaa143b4e6e86b17c69'}],
-      rewards:{cobweb:'0xF7a0cacDF0810609EE5618247C4121b799E41664',dao:'0x579a71890aE0E99806f75cD2e006bB07559C3b49',turbine:'0x92B53785090F6FE0717Ca3cF5dB8f8040d3B070b'}}
+  /* ========================================================================
+     0. 常量与选择器
+     ====================================================================== */
+  var SEL = {
+    balanceOf:        '0x70a08231',
+    decimals:         '0x313ce567',
+    warmupInfo:       '0x6746f4c2', // warmupInfo(address) -> (deposit, gons, expiry, lock)
+    stakesCount:      '0x98dc8dea', // getUserStakesCount(address)
+    stakes:           '0x584b62a1', // stakes(address,uint256)
+    depositorBalance: '0xb79215d6', // getDepositorBalance(address)
+    bondLength:       '0x7d01a8d7', // getBondInfoDataLength(address)
+    bondData:         '0x7123eab7', // getBondInfoData(address) -> Bond[]
+    pendingPayoutFor: '0x3796c67e', // pendingPayoutFor(address,uint256)
+    depositCount:     '0x1bae91a4', // getUserDepositCount(address)
+    deposit:          '0x60711058', // getUserDeposit(address,uint256)
+    claimable:        '0x6f5244b1', // getClaimable(address,uint256)
+    rewardOf:         '0x1d62ebd9', // rewardOf(address)
+    turbineBal:       '0xb4131557', // getTurbineBal(address)
+    balanceForGons:   '0x7965d56d'  // balanceForGons(uint256) —— gons 折算成当前 LGNS
   };
-  var SEL={balanceOf:'0x70a08231',decimals:'0x313ce567',getUserStakesCount:'0x98dc8dea',stakes:'0x584b62a1',getDepositorBalance:'0xb79215d6',
-    getUserDepositCount:'0x1bae91a4',getUserDeposit:'0x60711058',getClaimable:'0x6f5244b1',
-    rewardOf:'0x1d62ebd9',getTurbineBal:'0xb4131557'};
-  var encAddr=function(a){return a.toLowerCase().replace(/^0x/,'').padStart(64,'0');};
-  var encU=function(n){return BigInt(n).toString(16).padStart(64,'0');};
-  var okHex=function(h){return h&&h!=='0x';};
-  var toBig=function(h){return okHex(h)?BigInt(h):0n;};
-  function words(h){var s=(h||'0x').replace(/^0x/,'');var w=[];for(var i=0;i<s.length;i+=64)w.push(BigInt('0x'+s.slice(i,i+64)));return w;}
-  function fmt(raw,dec){ if(typeof raw!=='bigint'){try{raw=BigInt(raw||0);}catch(e){raw=0n;}} var neg=raw<0n; if(neg)raw=-raw; var b=10n**BigInt(dec); var i=raw/b; var f=(raw%b).toString().padStart(dec,'0').replace(/0+$/,''); return (neg?'-':'')+i.toString()+(f?'.'+f:''); }
-  function pretty(raw,dec){ var parts=fmt(raw,dec).split('.'); var i=parts[0],f=parts[1]||''; var neg=i.charAt(0)==='-'; var ia=i.replace('-',''); f=(ia!=='0')?f.slice(0,2):f.slice(0,6); i=(neg?'-':'')+ia.replace(/\B(?=(\d{3})+(?!\d))/g,','); return f?i+'.'+f:i; }
-  function rpc(rpcs,method,params){
-    return (async function(){ var e;
-      for(var k=0;k<rpcs.length;k++){
-        var timer, controller;
-        try{
-          controller=new AbortController(); timer=setTimeout(function(c){return function(){c.abort();};}(controller),9000);
-          var r=await fetch(rpcs[k],{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:method,params:params}),signal:controller.signal});
-          var j=await r.json(); if(j.error)throw new Error(j.error.message); return j.result;
-        }catch(x){e=x;}finally{if(timer)clearTimeout(timer);}
+
+  var CHAINS = {
+    polygon: {
+      key: 'polygon', name: 'Polygon', cls: 'poly',
+      rpcs: ['https://polygon-bor-rpc.publicnode.com', 'https://polygon.drpc.org', 'https://polygon-rpc.com'],
+      explorer: 'https://polygonscan.com/address/',
+      lgns: '0xeB51D9A39AD5EEF215dC0Bf39a8821ff804A0F01',
+      slgns: '0x99a57E6C8558BC6689f894e068733ADf83C19725',
+      staking: '0x1964Ca90474b11FFD08af387b110ba6C96251Bfc',
+      // 计入 LGNS 总量的锁仓（本金口径 getDepositorBalance）
+      locks: [
+        { label: '60 天锁仓',   addr: '0xdAd4d3fE850C8C57a2880F1C7D9141F2bCf3B65A' },
+        { label: '120 天锁仓',  addr: '0xa22ca986cA163ab51f33fb534D559E4E03445c44' },
+        { label: '240 天锁仓',  addr: '0xED24055c04609500AdB329c4eB82AAE49a478B8f' },
+        { label: '360 天锁仓',  addr: '0x14fcA7bfa779A4172c9b2DE61fd352C005442520' },
+        { label: '360 天锁仓 V2', addr: '0x6652d0f0D7aEc5070804E55b7023d32B9Bbc4190' },
+        { label: '600 天锁仓',  addr: '0x8cA97F41d2C81AF050656e8AD0Cf543820a24504' },
+        { label: '能量值质押',  addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07' }
+      ],
+      // 单位未确认的仓位：照实展示，不计入 LGNS 总量
+      others: [
+        { label: 'A 币 120 天质押', addr: '0x33b69112FFF18eeA99834ACa7Db4021BebC1E084' },
+        { label: 'A 币 240 天质押', addr: '0x65Ed60E414CEcE532d8afF90c89dA369E44CF883' },
+        { label: 'A 币 360 天质押', addr: '0xDa13C7553A654601667adf9a1A16248bAB584F13' },
+        { label: 'A 币 360 天（代币）', addr: '0x23E2B07d85a8dbc307742C72aadbbdde4E5e2EFB' },
+        { label: '金库 Vault',     addr: '0xC90e5B113368Fb33d64E69F9fF3927C30F9a2553' }
+      ],
+      bonds: [
+        { label: 'DAI 债券 · 30 天',  addr: '0x152Ed4367ae89FBB37055780dB228dc178cB4330', sym: 'DAI',  dec: 18 },
+        { label: 'DAI 债券 · 60 天',  addr: '0x5f0c7F5a6f9C31A28b59B51FceE090E1b3f1e160', sym: 'DAI',  dec: 18 },
+        { label: 'DAI 债券 · 120 天', addr: '0x4116262358c9DcCEDBA558B1BC6Fd01d09C79F9D', sym: 'DAI',  dec: 18 },
+        { label: 'DAI 债券 · 240 天', addr: '0xDc40a84b1E44e181a215b9B56e70C14e89DD0Fb0', sym: 'DAI',  dec: 18 },
+        { label: 'DAI 债券 · 360 天', addr: '0xa9c9eFB2AeEc103116B58B85cfeEFBB1b1FD1433', sym: 'DAI',  dec: 18 },
+        { label: 'DAI 债券 · 600 天', addr: '0xB867370e6DFe37804e2A930fa8c19915170f3eCe', sym: 'DAI',  dec: 18 },
+        { label: 'USDT 债券',        addr: '0xbE741d070c6d26109b95ddcD7B6da47395272f45', sym: 'USDT', dec: 6  },
+        { label: 'DAI 债券',         addr: '0x59A6693CaA6305b1E4F16176D5228C32E24717E5', sym: 'DAI',  dec: 18 },
+        { label: 'WBTC 债券',        addr: '0x4337E95f99d28bE9a013a17306542F835f7e6373', sym: 'WBTC', dec: 8  },
+        { label: 'wETH 债券',        addr: '0x2EaF2221f4A8234c2a4aF65DCA38Eaf3CCe52DF1', sym: 'wETH', dec: 18 },
+        { label: 'LP 债券 · 30 天',  addr: '0x579906B27d5c9f88d3a1C21d9150aA5C4544399D', sym: 'LP',   dec: 18 },
+        { label: 'LP 债券 · 60 天',  addr: '0xfe713fE10D7a06dC0Bf815B76e593a62ED7b70f8', sym: 'LP',   dec: 18 },
+        { label: 'LP 债券 · 120 天', addr: '0x418F8bD13AEB1a1B3d89013EAdf5ADfA179a4F59', sym: 'LP',   dec: 18 },
+        { label: 'LP 债券 · 240 天', addr: '0x468c0ee3069Fbb8BC9A50f2cFf7004A5d6384026', sym: 'LP',   dec: 18 },
+        { label: 'LP 债券 · 360 天', addr: '0x6c0Ac888b075c6b5141cbC1Da6170B6686aFd07D', sym: 'LP',   dec: 18 },
+        { label: 'LP 债券 · 600 天', addr: '0x9b081323d11A2A61f43701A4007a4a98357c57A1', sym: 'LP',   dec: 18 },
+        { label: 'LP 债券',          addr: '0x2EC37eAb8C1a3EA0eDa2296495bf7BE6c62e2788', sym: 'LP',   dec: 18 }
+      ],
+      rewards: [
+        { label: '涡轮 Turbine',   addr: '0x07Ff4e06865de4934409Aa6eCea503b08Cc1C78d', kind: 'turbine' },
+        { label: '蛛网奖励',       addr: '0x806FDab92B0Fc7fBE4bbBE5117A54cAa9283d5a4', kind: 'rewardOf' },
+        { label: '社区/推广奖励',  addr: '0xa49aba84930299c6c2d537456A3e681bB4500f15', kind: 'rewardOf' }
+      ],
+      extras: [
+        { label: 'DAI',            sym: 'DAI',  addr: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', dec: 18 },
+        { label: 'USDT',           sym: 'USDT', addr: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', dec: 6  },
+        { label: 'WBTC',           sym: 'WBTC', addr: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', dec: 8  },
+        { label: 'wETH',           sym: 'wETH', addr: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', dec: 18 },
+        { label: 'A 稳定币',       sym: 'A',    addr: '0x6631eE651DA438Db2BE611B5A44dFE2Ca04590C5', dec: null },
+        { label: 'LGNS/DAI LP',    sym: 'LP',   addr: '0x882df4B0fB50a229C3B4124EB18c759911485bFb', dec: 18 }
+      ]
+    },
+
+    anubis: {
+      key: 'anubis', name: 'Anubis', cls: 'anb',
+      rpcs: ['https://rpc2.anubispace.org', 'https://rpc.anubispace.org'],
+      explorer: 'https://browser.anubispace.org/address/',
+      lgns: '0x4D1D808a081FdAc440703b3765FC61f8028C06B8',
+      slgns: '0x2243aE29F73137d678197b61B0621AE942845B8C',
+      staking: '0x7a2E3fA6eA60437F0441b8eb5e60674B80339228',
+      locks: [
+        { label: '360 天长期质押', addr: '0x88ea98af226Cd4402A3873400308a4D78784eCE6' },
+        { label: '600 天长期质押', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
+      ],
+      others: [
+        { label: '活动积分质押', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E', unit: '积分', entries: true },
+        { label: '折扣质押',     addr: '0x5584CDeb1369673C91C6aD7EBea0cE7cB630ce60', unit: 'LGNS？', entries: true },
+        { label: '即时质押',     addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824', unit: 'LGNS？', entries: false }
+      ],
+      bonds: [
+        { label: '销毁债券',      addr: '0x11b10C9827c5B7071E96fcAa143B4e6E86b17c69', sym: 'DAI', dec: 18, abi: 'burn' },
+        { label: '固定销毁债券',  addr: '0x3f403751975e1EB06d95901f7FF246513444E71F', sym: 'DAI', dec: 18, abi: 'burn' }
+      ],
+      rewards: [
+        { label: '涡轮 Turbine', addr: '0x92B53785090F6FE0717Ca3cF5dB8f8040d3B070b', kind: 'turbine' },
+        { label: '蛛网奖励',     addr: '0xF7a0cacDF0810609EE5618247C4121b799E41664', kind: 'rewardOf' },
+        { label: '社区奖励 DAO', addr: '0x579a71890aE0E99806f75cD2e006bB07559C3b49', kind: 'rewardOf' }
+      ],
+      extras: [
+        { label: 'DAI',   sym: 'DAI',   addr: '0x83fd06F0846d9D90B3016bF670Efe2E0B11cDe14', dec: 18 },
+        { label: 'GLGNS', sym: 'GLGNS', addr: '0xf140a92C156e76F5A1d3D6f96284b250330F8F4c', dec: null },
+        { label: 'Kopek', sym: 'KOPEK', addr: '0x8c6C69d640A392645EBcD021d3bfD8dD177cCeFB', dec: null }
+      ]
+    }
+  };
+
+  var LIMIT = { entries: 60, batch: 10, timeout: 7000, wallets: 20, workers: 6 };
+
+  /* ========================================================================
+     1. 基础工具（全程 BigInt，避免浮点误差）
+     ====================================================================== */
+  function addr32(a) { return String(a).toLowerCase().replace(/^0x/, '').padStart(64, '0'); }
+  function u256(n) { return BigInt(n).toString(16).padStart(64, '0'); }
+  function hexToBig(h) {
+    if (typeof h !== 'string' || h.length < 3) return 0n;
+    try { return BigInt(h); } catch (e) { return 0n; }
+  }
+  function words(h) {
+    var s = (typeof h === 'string' ? h : '').replace(/^0x/, ''), out = [];
+    for (var i = 0; i + 64 <= s.length; i += 64) out.push(BigInt('0x' + s.slice(i, i + 64)));
+    return out;
+  }
+  function decStr(raw, dec) {
+    var neg = raw < 0n, v = neg ? -raw : raw, base = 10n ** BigInt(dec);
+    var ip = (v / base).toString(), fp = (v % base).toString().padStart(dec, '0').replace(/0+$/, '');
+    return { neg: neg, ip: ip, fp: fp };
+  }
+  function group(s) { return s.replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function fmt(raw, dec) {
+    if (raw === null || raw === undefined) return '—';
+    dec = dec === undefined ? 9 : dec;
+    var p = decStr(raw, dec);
+    var keep = p.ip === '0' ? 6 : 2;
+    var fp = (p.fp + '0000000000').slice(0, keep);
+    if (/^0*$/.test(fp)) fp = '';
+    return (p.neg ? '-' : '') + group(p.ip) + (fp ? '.' + fp : '');
+  }
+  function fmt2(raw, dec) {
+    var t = fmt(raw, dec === undefined ? 9 : dec);
+    return t.indexOf('.') < 0 ? t + '.00' : (t.split('.')[1].length === 1 ? t + '0' : t);
+  }
+  function exact(raw, dec) {
+    if (raw === null || raw === undefined) return '';
+    var p = decStr(raw, dec === undefined ? 9 : dec);
+    return (p.neg ? '-' : '') + p.ip + (p.fp ? '.' + p.fp : '');
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function short(a) { return a.slice(0, 6) + '…' + a.slice(-4); }
+  function isAddr(a) { return /^0x[0-9a-fA-F]{40}$/.test(a); }
+
+  /* ========================================================================
+     2. RPC：分批 eth_call、端点轮换、超时与回退
+     ====================================================================== */
+  function postJSON(url, body, timeout) {
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, timeout);
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctl ? ctl.signal : undefined
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) { clearTimeout(timer); return j; },
+            function (e) { clearTimeout(timer); throw e; });
+  }
+
+  var ranked = {}, primed = {}, dead = {};
+  function markDead(chain, url) {
+    dead[chain] = dead[chain] || {};
+    dead[chain][url] = Date.now() + 90000;      // 90 秒冷却
+    var list = ranked[chain] || CHAINS[chain].rpcs.slice();
+    var i = list.indexOf(url);
+    if (i >= 0) { list.splice(i, 1); list.push(url); ranked[chain] = list; CHAINS[chain].rpcs = list; }
+  }
+  function alive(chain) {
+    var now = Date.now();
+    var list = (CHAINS[chain].rpcs || []).filter(function (u) { return !(dead[chain] && dead[chain][u] > now); });
+    return list.length ? list : CHAINS[chain].rpcs.slice();
+  }
+  function promote(chain, url) {
+    if (dead[chain]) dead[chain][url] = 0;
+    var list = ranked[chain] || CHAINS[chain].rpcs.slice();
+    var i = list.indexOf(url);
+    if (i > 0) { list.splice(i, 1); list.unshift(url); }
+    ranked[chain] = list; CHAINS[chain].rpcs = list;
+  }
+
+  /* 首个批次同时打所有端点，取最快的那个（省掉一次测速往返） */
+  function race(urls, body, timeout) {
+    return new Promise(function (resolve) {
+      var done = false, left = urls.length;
+      var timer = setTimeout(function () { if (!done) { done = true; resolve(null); } }, timeout + 400);
+      urls.forEach(function (u) {
+        postJSON(u, body, timeout).then(function (j) {
+          if (done) return;
+          if (Array.isArray(j) && j.length) { done = true; clearTimeout(timer); resolve({ url: u, json: j }); }
+          else if (--left === 0) { done = true; clearTimeout(timer); resolve(null); }
+        }, function () {
+          if (--left === 0 && !done) { done = true; clearTimeout(timer); resolve(null); }
+        });
+      });
+    });
+  }
+
+  async function rpcCall(chain, method, params) {
+    var urls = alive(chain), last;
+    for (var i = 0; i < urls.length; i++) {
+      try {
+        var j = await postJSON(urls[i], { jsonrpc: '2.0', id: 1, method: method, params: params }, LIMIT.timeout);
+        if (j && j.result !== undefined) return j.result;
+        last = new Error(j && j.error ? j.error.message : 'empty');
+      } catch (e) { last = e; }
+    }
+    throw last || new Error('rpc unavailable');
+  }
+
+  // 返回数组：string=结果，null=合约调用失败，undefined=网络失败
+  async function callMany(chain, calls) {
+    var out = new Array(calls.length);
+    var jobs = [];
+    for (var s = 0; s < calls.length; s += LIMIT.batch) jobs.push([s, calls.slice(s, s + LIMIT.batch)]);
+
+    async function run(offset, group) {
+      var body = group.map(function (c, k) {
+        return { jsonrpc: '2.0', id: offset + k, method: 'eth_call', params: [{ to: c.to, data: c.data }, 'latest'] };
+      });
+      var urls = alive(chain), got = null;
+      if (!primed[chain]) {
+        var first = await race(urls, body, LIMIT.timeout);
+        if (first) { got = first.json; promote(chain, first.url); }
+        primed[chain] = true;
       }
-      throw e;
+      for (var i = 0; i < urls.length && !got; i++) {
+        try {
+          var j = await postJSON(urls[i], body, LIMIT.timeout);
+          if (Array.isArray(j) && j.length === group.length) { got = j; promote(chain, urls[i]); }
+          else markDead(chain, urls[i]);
+        } catch (e) { markDead(chain, urls[i]); }
+      }
+      if (got) {
+        got.forEach(function (item) {
+          if (!item || typeof item.id !== 'number') return;
+          out[item.id] = item.error ? null : item.result;
+        });
+        return;
+      }
+      // 批量被拒时逐条重试
+      for (var k2 = 0; k2 < group.length; k2++) {
+        for (var u = 0; u < urls.length; u++) {
+          try {
+            var r = await postJSON(urls[u], {
+              jsonrpc: '2.0', id: 0, method: 'eth_call',
+              params: [{ to: group[k2].to, data: group[k2].data }, 'latest']
+            }, LIMIT.timeout);
+            if (r && r.result !== undefined) { out[offset + k2] = r.result; break; }
+            if (r && r.error) { out[offset + k2] = null; break; }
+          } catch (e) { /* 继续 */ }
+        }
+      }
+    }
+
+    // 最多 4 个批次并发
+    var idx = 0;
+    async function worker() {
+      while (idx < jobs.length) {
+        var job = jobs[idx++];
+        await run(job[0], job[1]);
+      }
+    }
+    var ws = []; for (var wq = 0; wq < LIMIT.workers; wq++) ws.push(worker());
+    await Promise.all(ws);
+    return out;
+  }
+
+  /* 区块时间（用于剩余天数），每条链缓存 2 分钟；超时直接放弃，不阻塞总数 */
+  var btCache = {};
+  async function blockInfo(chain) {
+    var hit = btCache[chain];
+    if (hit && Date.now() - hit.at < 120000) return hit.val;
+    var job = (async function () {
+      try {
+        var head = await rpcCall(chain, 'eth_getBlockByNumber', ['latest', false]);
+        var n = Number(hexToBig(head.number));
+        var prev = await rpcCall(chain, 'eth_getBlockByNumber', ['0x' + Math.max(1, n - 50000).toString(16), false]);
+        var t2 = Number(hexToBig(head.timestamp)), t1 = Number(hexToBig(prev.timestamp));
+        var pn = Number(hexToBig(prev.number));
+        var val = { cur: n, ts: t2, spb: (t2 - t1) / Math.max(1, n - pn) };
+        btCache[chain] = { at: Date.now(), val: val };
+        return val;
+      } catch (e) {
+        btCache[chain] = { at: Date.now(), val: null };
+        return null;
+      }
     })();
+    var guard = new Promise(function (res) { setTimeout(function () { res(null); }, 6000); });
+    return Promise.race([job, guard]);
   }
-  var call=function(rpcs,to,data){return rpc(rpcs,'eth_call',[{to:to,data:data},'latest']);};
-  async function blockTime(cfg){ try{ var cur=Number(toBig(await rpc(cfg.rpcs,'eth_blockNumber',[]))); var back=Math.max(1,cur-100000);
-    var res=await Promise.all([rpc(cfg.rpcs,'eth_getBlockByNumber',['0x'+cur.toString(16),false]),rpc(cfg.rpcs,'eth_getBlockByNumber',['0x'+back.toString(16),false])]);
-    var t2=Number(toBig(res[0].timestamp)),t1=Number(toBig(res[1].timestamp)); return {cur:cur,ts:t2,spb:(t2-t1)/(cur-back)}; }catch(e){ return null; } }
-  var blkDate=function(blk,bt){ return !bt?'—':new Date((bt.ts+(Number(blk)-bt.cur)*bt.spb)*1000).toISOString().slice(0,10); };
-  var remainDays=function(blk,bt){ return !bt?'—':Math.round((Number(blk)-bt.cur)*bt.spb/86400); };
-  function bjTime(ts){ try{ return new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ts*1000)).replace(/\//g,'-'); }catch(e){ return '—'; } }
-  function dai2(raw){ try{ return Number(fmt(raw,18)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }catch(e){ return '0.00'; } }
+  function matDate(block, bt) {
+    if (!bt || block === null || block === undefined) return null;
+    var ts = bt.ts + (Number(block) - bt.cur) * bt.spb;
+    var d = new Date(ts * 1000);
+    var y = d.getUTCFullYear();
+    if (y < 2023 || y > 2035) return null;
+    return d.toISOString().slice(0, 10);
+  }
+  function daysLeft(block, bt) {
+    if (!bt || block === null || block === undefined) return null;
+    return Math.round((Number(block) - bt.cur) * bt.spb / 86400);
+  }
 
-  async function queryChain(key,addr){
-    var cfg=CHAINS[key], o={cfg:cfg,block:'—',walletLGNS:null,sLGNS:null,positions:[],bonds:[],bt:null,rewards:null,errors:[]};
-    var jobs=[];
-    jobs.push((async function(){try{o.block=Number(toBig(await rpc(cfg.rpcs,'eth_blockNumber',[]))).toString();}catch(e){}})());
-    jobs.push((async function(){o.bt=await blockTime(cfg);})());
-    jobs.push((async function(){try{
-      var r=await Promise.all([call(cfg.rpcs,cfg.lgns,SEL.decimals),call(cfg.rpcs,cfg.lgns,SEL.balanceOf+encAddr(addr))]);
-      o.walletLGNS={raw:toBig(r[1]),dec:Number(toBig(r[0]))||9};
-    }catch(e){o.errors.push(L('钱包内 LGNS','wallet LGNS'));}})());
-    jobs.push((async function(){try{
-      var r=await Promise.all([call(cfg.rpcs,cfg.sLGNS,SEL.decimals),call(cfg.rpcs,cfg.sLGNS,SEL.balanceOf+encAddr(addr))]);
-      o.sLGNS={raw:toBig(r[1]),dec:Number(toBig(r[0]))||9};
-    }catch(e){o.errors.push(L('活期 sLGNS','flexible sLGNS'));}})());
+  /* ========================================================================
+     3. 读取：一条链 × 一个钱包
+     ====================================================================== */
+  async function readChain(chainKey, wallet) {
+    var cfg = CHAINS[chainKey], A = addr32(wallet);
+    var res = {
+      key: chainKey, cfg: cfg,
+      lgns: null, flex: null, warmup: null,
+      locks: [], others: [], bonds: [], rewards: [], extras: [],
+      errors: [], bt: null
+    };
 
-    var posR=new Array(cfg.lockStakes.length);
-    cfg.lockStakes.forEach(function(ls,idx){ jobs.push((async function(){try{
-      var res=await Promise.all([call(cfg.rpcs,ls.addr,SEL.getUserStakesCount+encAddr(addr)),call(cfg.rpcs,ls.addr,SEL.getDepositorBalance+encAddr(addr))]);
-      var cnt=Number(toBig(res[0])), total=toBig(res[1]), items=[];
-      if(cnt>MAX_ITEMS)o.errors.push(L(ls.label+'：超过 '+MAX_ITEMS+' 笔，未领明细不完整',ls.en+': more than '+MAX_ITEMS+' entries; pending detail is incomplete'));
-      if(cnt>0){
-        var n=Math.min(cnt,MAX_ITEMS);
-        items=await Promise.all(Array.from({length:n},function(_,i){
-          return call(cfg.rpcs,ls.addr,SEL.stakes+encAddr(addr)+encU(i)).then(function(hx){
-            var w=words(hx); return {principal:w[0]||0n,matBlk:w[3]||0n,startBlk:w[5]||0n,status:w[7]||0n,accrued:w[10]||0n};
-          }).catch(function(){return {principal:0n,matBlk:0n,startBlk:0n,status:0n,accrued:0n,readFailed:true};});
-        }));
-        if(items.some(function(it){return it.readFailed;}))o.errors.push(L(ls.label+'：部分质押记录读取失败',ls.en+': some stake entries failed to load'));
+    var calls = [], slot = {};
+    function push(tag, to, data) { slot[tag] = calls.length; calls.push({ to: to, data: data }); }
+
+    push('lgns', cfg.lgns, SEL.balanceOf + A);
+    push('flex', cfg.slgns, SEL.balanceOf + A);
+    push('warmup', cfg.staking, SEL.warmupInfo + A);
+    cfg.locks.forEach(function (l, i) {
+      push('lockCount' + i, l.addr, SEL.stakesCount + A);
+      push('lockTotal' + i, l.addr, SEL.depositorBalance + A);
+    });
+    cfg.others.forEach(function (o, i) { push('otherTotal' + i, o.addr, SEL.depositorBalance + A); });
+    cfg.bonds.forEach(function (b, i) {
+      push('bondLen' + i, b.addr, b.abi === 'burn' ? SEL.depositCount + A : SEL.bondLength + A);
+    });
+    cfg.rewards.forEach(function (r, i) {
+      push('reward' + i, r.addr, r.kind === 'turbine' ? SEL.turbineBal + A : SEL.rewardOf + A);
+    });
+    cfg.extras.forEach(function (x, i) {
+      push('xbal' + i, x.addr, SEL.balanceOf + A);
+      if (x.dec === null) push('xdec' + i, x.addr, SEL.decimals);
+    });
+
+    var btP = blockInfo(chainKey);
+    var base = await callMany(chainKey, calls);
+    var bt = await btP;
+
+    function get(tag) {
+      var i = slot[tag];
+      if (i === undefined) return undefined;
+      var v = base[i];
+      return v === undefined ? undefined : v; // undefined=网络失败, null=revert, string=数据
+    }
+    function big(tag) { var v = get(tag); return (v === null || v === undefined) ? null : hexToBig(v); }
+
+    var lg = big('lgns');
+    res.lgns = lg === null ? null : { raw: lg, dec: 9 };
+    var fx = big('flex');
+    res.flex = fx === null ? null : { raw: fx, dec: 9 };
+    var wm = get('warmup');
+    if (wm === null || wm === undefined) res.warmup = null;
+    else { var w = words(wm); res.warmup = { raw: w[0] || 0n }; }
+
+    /* ---- 锁仓（计入） ---- */
+    for (var i = 0; i < cfg.locks.length; i++) {
+      var lc = big('lockCount' + i);
+      var lt = big('lockTotal' + i);
+      if (lt === null && lc === null) continue;               // 合约不可读，忽略
+      res.locks.push({
+        label: cfg.locks[i].label, addr: cfg.locks[i].addr,
+        count: lc === null ? null : Number(lc),
+        principal: lt === null ? null : lt,
+        items: []
+      });
+    }
+
+    /* ---- 其它未计量仓位 ---- */
+    for (var j = 0; j < cfg.others.length; j++) {
+      var ot = big('otherTotal' + j);
+      if (ot === null) continue;
+      res.others.push({ label: cfg.others[j].label, addr: cfg.others[j].addr, unit: cfg.others[j].unit || '', principal: ot, count: null });
+    }
+
+    /* ---- 债券 ---- */
+    for (var b = 0; b < cfg.bonds.length; b++) {
+      var bl = big('bondLen' + b);
+      if (bl === null) continue;
+      res.bonds.push({
+        label: cfg.bonds[b].label, addr: cfg.bonds[b].addr, sym: cfg.bonds[b].sym,
+        dec: cfg.bonds[b].dec, abi: cfg.bonds[b].abi || 'bond',
+        count: Number(bl), claimable: 0n, payable: 0n, principal: 0n, deposits: []
+      });
+    }
+
+    /* ---- 奖励 ---- */
+    for (var r = 0; r < cfg.rewards.length; r++) {
+      var rv = get('reward' + r);
+      if (rv === null || rv === undefined) continue;
+      var ws = words(rv);
+      var kind = cfg.rewards[r].kind;
+      var tot = ws[0] || 0n, clm = ws.length > 1 ? (ws[1] || 0n) : 0n;
+      var left = tot > clm ? tot - clm : 0n;
+      if (kind === 'turbine') { tot = left; clm = 0n; }   // 涡轮接口直接返回可领余额
+      res.rewards.push({
+        label: cfg.rewards[r].label, addr: cfg.rewards[r].addr, kind: kind,
+        total: tot, claimed: clm, raw: left
+      });
+    }
+
+    /* ---- 其它资产 ---- */
+    for (var x = 0; x < cfg.extras.length; x++) {
+      var xb = big('xbal' + x);
+      if (xb === null) continue;
+      var xd = cfg.extras[x].dec;
+      if (xd === null) { var dd = big('xdec' + x); xd = dd === null ? 18 : Number(dd); }
+      res.extras.push({ label: cfg.extras[x].label, sym: cfg.extras[x].sym, raw: xb, dec: xd });
+    }
+
+    /* ---- 细节：锁仓逐笔 ---- */
+    var detail = [];
+    cfg.locks.forEach(function (l, i) {
+      var r0 = res.locks.filter(function (o) { return o.addr === l.addr; })[0];
+      if (!r0 || !r0.count) return;
+      var n = Math.min(r0.count, LIMIT.entries);
+      for (var k = 0; k < n; k++) {
+        detail.push({ kind: 'lock', ref: r0, index: k, to: l.addr, data: SEL.stakes + A + u256(k) });
       }
-      if(cnt>0||total>0n)posR[idx]={label:ls.label,en:ls.en,addr:ls.addr,count:cnt,total:total,items:items};
-    }catch(e){o.errors.push(L(ls.label,ls.en||ls.label));}})()); });
-
-    var bondR=new Array((cfg.bonds||[]).length);
-    (cfg.bonds||[]).forEach(function(bd,idx){ jobs.push((async function(){try{
-      var cnt=Number(toBig(await call(cfg.rpcs,bd.addr,SEL.getUserDepositCount+encAddr(addr))));
-      if(cnt<=0)return;
-      if(cnt>MAX_ITEMS)o.errors.push(L(bd.label+'：超过 '+MAX_ITEMS+' 笔，债券未领金额不完整',bd.en+': more than '+MAX_ITEMS+' deposits; bond claimable amount is incomplete'));
-      var n=Math.min(cnt,MAX_ITEMS);
-      var deps=await Promise.all(Array.from({length:n},function(_,i){
-        return Promise.all([
-          call(cfg.rpcs,bd.addr,SEL.getUserDeposit+encAddr(addr)+encU(i)),
-          call(cfg.rpcs,bd.addr,SEL.getClaimable+encAddr(addr)+encU(i)).catch(function(){return null;})
-        ]).then(function(rr){
-          var w=words(rr[0]);
-          return {principal:w[0]||0n,released:w[3]||0n,claimed:w[4]||0n,depositTs:Number(w[7]||0n),claimable:rr[1]?toBig(rr[1]):0n,claimReadFailed:!rr[1]};
-        }).catch(function(){return null;});
-      }));
-      deps=deps.filter(Boolean);
-      if(deps.some(function(d){return d.claimReadFailed;}))o.errors.push(L(bd.label+'：部分可领取金额读取失败',bd.en+': some claimable amounts failed to load'));
-      if(deps.length)bondR[idx]={label:bd.label,en:bd.en,addr:bd.addr,count:cnt,deps:deps};
-    }catch(e){o.errors.push(L(bd.label,bd.en||bd.label));}})()); });
-
-    if(cfg.rewards){
-      o.rewards={cobweb:null,dao:null,turbine:null};
-      jobs.push((async function(){try{var w=words(await call(cfg.rpcs,cfg.rewards.cobweb,SEL.rewardOf+encAddr(addr)));o.rewards.cobweb=nonNegative(w[0]||0n,w[1]||0n);}catch(e){o.errors.push(L('蜘蛛网奖励','Cobweb reward'));}})());
-      jobs.push((async function(){try{var w=words(await call(cfg.rpcs,cfg.rewards.dao,SEL.rewardOf+encAddr(addr)));o.rewards.dao=nonNegative(w[0]||0n,w[1]||0n);}catch(e){o.errors.push(L('社区奖励','DAO reward'));}})());
-      jobs.push((async function(){try{o.rewards.turbine=toBig(await call(cfg.rpcs,cfg.rewards.turbine,SEL.getTurbineBal+encAddr(addr)));}catch(e){o.errors.push(L('涡轮奖励','Turbine reward'));}})());
-    }
-    await Promise.all(jobs);
-    o.positions=posR.filter(Boolean); o.bonds=bondR.filter(Boolean);
-    return o;
-  }
-
-  function nonNegative(a,b){return a>b?a-b:0n;}
-  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
-  function lockSum(o){var t=0n;(o.positions||[]).forEach(function(p){t+=p.total;});return t;}
-  function lockAccrued(o){var t=0n;(o.positions||[]).forEach(function(p){(p.items||[]).forEach(function(it){t+=it.accrued||0n;});});return t;}
-  function bondPrincipalDai(o){var t=0n;(o.bonds||[]).forEach(function(b){(b.deps||[]).forEach(function(d){t+=d.principal;});});return t;}
-  function bondClaimable(o){var t=0n;(o.bonds||[]).forEach(function(b){(b.deps||[]).forEach(function(d){t+=d.claimable;});});return t;}
-  function rewardAll(o){if(!o.rewards)return 0n;var r=o.rewards;return (r.cobweb||0n)+(r.turbine||0n)+(r.dao||0n);}
-  function pendingAll(o){return lockAccrued(o)+rewardAll(o)+bondClaimable(o);}
-  function chainCoinTotal(o){return (o.walletLGNS?o.walletLGNS.raw:0n)+(o.sLGNS?o.sLGNS.raw:0n)+lockSum(o)+pendingAll(o);}
-  function stakePrincipal(o){return (o.sLGNS?o.sLGNS.raw:0n)+lockSum(o);}
-  function shortA(a){return /^0x[0-9a-fA-F]{40}$/.test(a)?a.slice(0,6)+'…'+a.slice(-4):a;}
-
-  var addrEl=document.getElementById('addr'), btn=document.getElementById('qbtn');
-  var st=document.getElementById('status'), res=document.getElementById('result'), empty=document.getElementById('empty');
-  var WKEY='staking_saved_wallets_v1';
-  var clearSavedBtn=document.getElementById('clearSaved'), savedStatus=document.getElementById('savedStatus');
-  function parseAddresses(value){
-    var raw=(value||'').split(/[\s,;，；]+/).filter(Boolean), valid=[], invalid=[], seen={};
-    raw.forEach(function(a){
-      if(!/^0x[0-9a-fA-F]{40}$/.test(a)){invalid.push(a);return;}
-      var k=a.toLowerCase();if(!seen[k]){seen[k]=true;valid.push(a);}
+      if (r0.count > LIMIT.entries) res.errors.push(l.label + ' 超过 ' + LIMIT.entries + ' 笔，明细未取全');
     });
-    return {valid:valid,invalid:invalid};
-  }
-  function loadSavedWallets(){
-    try{
-      var raw=JSON.parse(localStorage.getItem(WKEY)||'[]');
-      var parsed=parseAddresses(Array.isArray(raw)?raw.join('\n'):'');
-      return parsed.invalid.length?[]:parsed.valid;
-    }catch(e){return [];}
-  }
-  function showSavedStatus(count){
-    if(savedStatus)savedStatus.textContent=count?L('已记住 '+count+' 个钱包','Saved '+count+' wallet(s)'):'';
-  }
-  function saveWallets(addresses){
-    try{localStorage.setItem(WKEY,JSON.stringify(addresses));showSavedStatus(addresses.length);return true;}
-    catch(e){if(savedStatus)savedStatus.textContent=L('（浏览器未允许本地保存）','(local storage unavailable)');return false;}
-  }
-  function clearSavedWallets(){
-    var stored=loadSavedWallets();
-    try{localStorage.removeItem(WKEY);}catch(e){}
-    var current=parseAddresses(addrEl.value);
-    if(current.valid.length&&current.valid.length===stored.length&&current.valid.every(function(a,i){return a.toLowerCase()===stored[i].toLowerCase();}))addrEl.value='';
-    showSavedStatus(0);
-    st.innerHTML='<span class="dot"></span>'+SP('已清除本机保存的钱包地址。','Saved wallet addresses cleared from this device.');
-  }
-  async function mapLimit(list,limit,fn){
-    var out=new Array(list.length),next=0,workers=[];
-    for(var w=0;w<Math.min(limit,list.length);w++)workers.push((async function(){
-      while(true){var i=next++;if(i>=list.length)return;out[i]=await fn(list[i],i);}
-    })());
-    await Promise.all(workers);return out;
-  }
-  async function queryWallet(addr){var chains=await Promise.all([queryChain('polygon',addr),queryChain('anubis',addr)]);return {address:addr,chains:chains};}
-  function sumByChain(wallets,key){
-    return wallets.reduce(function(total,w){
-      var c=w.chains.find(function(o){return o.cfg===CHAINS[key];});return total+(c?chainCoinTotal(c):0n);
-    },0n);
-  }
-  function sumWallet(wallets,fn){return wallets.reduce(function(t,w){return t+w.chains.reduce(function(s,o){return s+fn(o);},0n);},0n);}
-  function chainHTML(o,addr){
-    var c=o.cfg, total=chainCoinTotal(o);
-    var walletRaw=o.walletLGNS?o.walletLGNS.raw:null, stakeRaw=o.sLGNS?o.sLGNS.raw:null;
-    var h='<div class="panel"><div class="panel-h"><span class="pill '+c.cls+'">'+c.name+'</span> '+SP('资产与质押明细','assets and staking details')+'</div>';
-    h+='<div class="gt">'+SP('余额构成','Balance components')+'</div>';
-    h+='<div class="rw"><span class="l">'+SP('钱包内自由持有 LGNS','LGNS held in wallet')+'</span><span class="r"><b>'+(walletRaw==null?L('读取失败','read failed'):pretty(walletRaw,9)+' LGNS')+'</b></span></div>';
-    h+='<div class="rw"><span class="l">'+SP('活期质押 sLGNS','Flexible staking · sLGNS')+'</span><span class="r"><b>'+(stakeRaw==null?L('读取失败','read failed'):pretty(stakeRaw,o.sLGNS.dec)+' LGNS')+'</b></span></div>';
-    if(!o.positions.length)h+='<div class="gt">'+SP('🔒 长期/能量锁仓','🔒 Long-term / energy locks')+'</div><div class="emptyg">'+SP('本链没有锁仓记录。','No locked position found on this chain.')+'</div>';
-    o.positions.forEach(function(p){
-      h+='<div class="gt">🔒 '+esc(L(p.label,p.en||p.label))+' <b>'+L('本金 ','Principal ')+pretty(p.total,9)+' LGNS · '+p.count+L(' 笔',' entries')+'</b></div>';
-      p.items.forEach(function(it,i){
-        var md=blkDate(it.matBlk,o.bt),rd=remainDays(it.matBlk,o.bt);
-        var okDate=md!=='—'&&rd!=='—'&&Math.abs(rd)<3000&&(+md.slice(0,4))>=2023&&(+md.slice(0,4))<=2031;
-        var detail=okDate?'<small>'+L('到期 ','matures ')+md+L(' · 剩 ',' · ')+rd+L(' 天',' d left')+'</small>':'';
-        var pending=it.accrued>0n?L('未领取 ','Unclaimed ')+pretty(it.accrued,9):L('未领 0','Unclaimed 0');
-        h+='<div class="rw"><span class="l">#'+(i+1)+' <span class="mono">'+pretty(it.principal,9)+'</span> LGNS'+detail+'</span><span class="r"><b>'+pending+'</b></span></div>';
-      });
-      var accrued=p.items.reduce(function(s,it){return s+(it.accrued||0n);},0n);
-      h+='<div class="rw reward"><span class="l">'+SP('该类锁仓未领取','Unclaimed from this lock type')+'</span><span class="r"><b>'+pretty(accrued,9)+' LGNS</b></span></div>';
-    });
-    (o.bonds||[]).forEach(function(bd){
-      var pSum=0n,cSum=0n;bd.deps.forEach(function(d){pSum+=d.principal;cSum+=d.claimable;});
-      h+='<div class="gt bond">🔥 '+esc(L(bd.label,bd.en||bd.label))+' <b>'+L('本金 ','Principal ')+dai2(pSum)+' DAI · '+bd.deps.length+L(' 笔',' deposits')+' · '+L('未领取 ','Unclaimed ')+pretty(cSum,9)+' LGNS</b></div>';
-      bd.deps.forEach(function(d,i){
-        h+='<div class="rw"><span class="l">#'+(i+1)+' <span class="mono">'+dai2(d.principal)+'</span> DAI<small>'+L('已释放 ','released ')+dai2(d.released)+L(' · 已领取 ',' · claimed ')+pretty(d.claimed,9)+(d.depositTs>0?' · '+bjTime(d.depositTs):'')+'</small></span>'
-          +'<span class="r">'+L('未领取 ','Unclaimed ')+(d.claimReadFailed?'<b>—</b>':'<b>'+pretty(d.claimable,9)+'</b> LGNS')+'</span></div>';
-      });
-    });
-    if(o.rewards){
-      var rw=o.rewards;
-      h+='<div class="gt gift">'+SP('🎁 其他未领取奖励（LGNS）','🎁 Other unclaimed rewards (LGNS)')+' <b>'+SP('需在官方 App 领取','claim in the official app')+'</b></div>';
-      h+='<div class="rw reward"><span class="l">🕸️ '+SP('蜘蛛网奖励','Cobweb reward')+'</span><span class="r"><b>'+(rw.cobweb==null?'—':pretty(rw.cobweb,9))+'</b></span></div>';
-      h+='<div class="rw reward"><span class="l">🌀 '+SP('涡轮增压器','Turbine')+'</span><span class="r"><b>'+(rw.turbine==null?'—':pretty(rw.turbine,9))+'</b></span></div>';
-      h+='<div class="rw reward"><span class="l">🏛️ '+SP('社区奖励（DAO）','Community reward (DAO)')+'</span><span class="r"><b>'+(rw.dao==null?'—':pretty(rw.dao,9))+'</b></span></div>';
-    }
-    h+='<div class="chainsum"><span>'+SP('本链总币量（含未领取）','Total coins on this chain (including unclaimed)')+' <b>'+pretty(total,9)+' LGNS</b>'
-      +'<small>'+SP('自由持有 + 活期 + 锁仓本金 + 所有未领取 LGNS','wallet + flexible + locked principal + all unclaimed LGNS')+'</small></span>'
-      +'<a href="'+c.explorer+addr+'" target="_blank" rel="noopener">'+SP('🔗 链上验证 ↗','🔗 Verify on-chain ↗')+'</a></div>';
-    if(o.errors.length)h+='<div class="err">'+L('部分读取失败，总数可能偏低：','Some reads failed; total may be understated: ')+esc(o.errors.join(isZh()?'、':', '))+'</div>';
-    h+='</div>';return h;
-  }
-
-  async function doQuery(){
-    if(busy)return;
-    var parsed=parseAddresses(addrEl.value), addresses=parsed.valid;
-    if(parsed.invalid.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('有无效地址，请修正后再查：','Invalid address entries. Correct them before checking:')+' '+esc(parsed.invalid.slice(0,3).join(', '))+'</span>';return;}
-    if(!addresses.length){st.innerHTML='<span style="color:#ff9a8f">'+SP('请输入至少一个 0x 开头的 42 位钱包地址。','Enter at least one wallet address (0x plus 40 hex characters).')+'</span>';return;}
-    saveWallets(addresses);
-    busy=true;btn.disabled=true;btn.textContent=L('查询中…','Checking…');if(empty)empty.style.display='none';res.innerHTML='';
-    st.innerHTML='<span class="dot"></span>'+SP('读取 '+addresses.length+' 个钱包的双链数据…','Reading both chains for '+addresses.length+' wallet(s)…');
-    try{
-      var done=0;
-      var wallets=await mapLimit(addresses,2,async function(addr){
-        var result=await queryWallet(addr);done++;
-        st.innerHTML='<span class="dot"></span>'+SP('已完成 '+done+' / '+addresses.length+' 个钱包…','Completed '+done+' / '+addresses.length+' wallet(s)…');
-        return result;
-      });
-      var poly=sumByChain(wallets,'polygon'), anb=sumByChain(wallets,'anubis'), grand=poly+anb;
-      var freeAll=sumWallet(wallets,function(o){return o.walletLGNS?o.walletLGNS.raw:0n;});
-      var flexAll=sumWallet(wallets,function(o){return o.sLGNS?o.sLGNS.raw:0n;});
-      var lockAll=sumWallet(wallets,lockSum), pendingTotal=sumWallet(wallets,pendingAll), bondAll=sumWallet(wallets,bondPrincipalDai);
-      var html='<div class="bento">';
-      html+='<div class="tile big"><div class="k">'+SP('双链总币量（含所有未领取）','Total coins across both chains (including unclaimed)')+'</div><div class="v mono">'+pretty(grand,9)+'<span class="u">LGNS</span></div>'
-        +'<div class="chip"><span>Polygon <b class="mono">'+pretty(poly,9)+'</b> LGNS</span><span>Anubis <b class="mono">'+pretty(anb,9)+'</b> LGNS</span></div>'
-        +'<div class="subd">'+SP('已合并 '+wallets.length+' 个不同钱包地址；未领取金额按链上可读值计入。','Combined '+wallets.length+' unique wallet address(es); unclaimed amounts use on-chain readable values.')+'</div></div>';
-      html+='<div class="tile"><div class="ic">👛</div><div class="k">'+SP('钱包自由持有','LGNS in wallets')+'</div><div class="v mono">'+pretty(freeAll,9)+'</div><div class="subd">LGNS</div></div>';
-      html+='<div class="tile"><div class="ic">💧</div><div class="k">'+SP('活期质押','Flexible staking')+'</div><div class="v mono">'+pretty(flexAll,9)+'</div><div class="subd">sLGNS</div></div>';
-      html+='<div class="tile"><div class="ic">🔒</div><div class="k">'+SP('长期/能量锁仓本金','Long-term / energy principal')+'</div><div class="v g mono">'+pretty(lockAll,9)+'</div><div class="subd">LGNS</div></div>';
-      html+='<div class="tile"><div class="ic">🎁</div><div class="k">'+SP('所有未领取 LGNS','All unclaimed LGNS')+'</div><div class="v g mono">'+pretty(pendingTotal,9)+'</div><div class="subd">'+SP('锁仓 + 蜘蛛网 + 涡轮 + DAO + 销毁债券','locks + cobweb + turbine + DAO + burn bonds')+'</div></div>';
-      html+='<div class="tile"><div class="ic">🔥</div><div class="k">'+SP('销毁债券本金','Burn-bond principal')+'</div><div class="v o mono">'+(bondAll>0n?dai2(bondAll)+' DAI':'0.00 DAI')+'</div><div class="subd">'+SP('本金为 DAI，不计入 LGNS 总币量；债券未领取 LGNS 已计入总量。','DAI principal is separate from LGNS; unclaimed bond LGNS is included above.')+'</div></div>';
-      html+='</div>';
-      wallets.forEach(function(w){
-        var p=w.chains.find(function(o){return o.cfg===CHAINS.polygon;}),a=w.chains.find(function(o){return o.cfg===CHAINS.anubis;});
-        html+='<div class="wallet-head"><div class="wallet-address">'+SP('钱包 ','Wallet ')+esc(shortA(w.address))+' <span class="mono">'+esc(w.address)+'</span></div>'
-          +'<div class="wallet-total"><span>Polygon '+pretty(chainCoinTotal(p),9)+'</span><span>Anubis '+pretty(chainCoinTotal(a),9)+'</span><b>'+pretty(chainCoinTotal(p)+chainCoinTotal(a),9)+' LGNS</b></div></div>';
-        html+=w.chains.map(function(o){return chainHTML(o,w.address);}).join('');
-      });
-      res.innerHTML=html;
-      var errorCount=wallets.reduce(function(n,w){return n+w.chains.reduce(function(s,o){return s+o.errors.length;},0);},0);
-      st.innerHTML='<span class="dot"></span>'+SP('✓ 查询完成','✓ Done')+' · '+(errorCount?SP('有 '+errorCount+' 项读取失败，总数可能不完整。',' '+errorCount+' read(s) failed; total may be incomplete.'):'')
-        +' · '+new Date().toLocaleString(isZh()?'zh-CN':'en-US');
-    }catch(e){
-      st.innerHTML='<span style="color:#ff9a8f">'+L('查询失败：','Query failed: ')+esc(e&&e.message||L('网络波动','network error'))+L('。手机从本地文件查询受限，请通过 HTTPS 网页链接访问。','. Local-file queries are restricted on mobile; open the page from an HTTPS link.')+'</span>';
-    }finally{busy=false;btn.disabled=false;applyLang();}
-  }
-
-  function applyLang(){
-    if(addrEl)addrEl.placeholder=L('每行一个地址，也可用空格或逗号分隔','One address per line, or separate with spaces or commas');
-    if(btn&&!busy)btn.textContent=L('查询总币量','Check total');
-  }
-  function start(){
-    applyLang();if(empty)empty.style.display='block';btn.onclick=doQuery;
-    var saved=loadSavedWallets();
-    if(!(addrEl.value||'').trim()&&saved.length)addrEl.value=saved.join('\n');
-    showSavedStatus(saved.length);
-    clearSavedBtn.onclick=clearSavedWallets;
-    addrEl.addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();doQuery();}});
-    try{var q=new URLSearchParams(location.search).get('addr');if(q){addrEl.value=q;doQuery();}}catch(e){}
-  }
-  function initMatrix(){
-    var canvas=document.getElementById('matrix-bg');
-    if(!canvas||!canvas.getContext||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-    var ctx=canvas.getContext('2d');if(!ctx)return;
-    var width=0,height=0,dpr=1,font=14,step=22,drops=[],last=0;
-    var glyphs='01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン<>/';
-    function resize(){
-      dpr=Math.min(window.devicePixelRatio||1,1.5);
-      width=window.innerWidth;height=window.innerHeight;
-      canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      font=width<600?12:14;step=width<600?27:22;
-      var columns=Math.ceil(width/step);
-      drops=Array.from({length:columns},function(){return Math.random()*-height/font;});
-      ctx.font=font+'px ui-monospace,Menlo,monospace';
-    }
-    function frame(now){
-      requestAnimationFrame(frame);
-      if(document.hidden||now-last<48)return;
-      last=now;
-      ctx.fillStyle='rgba(2,6,4,0.13)';ctx.fillRect(0,0,width,height);
-      ctx.font=font+'px ui-monospace,Menlo,monospace';
-      for(var i=0;i<drops.length;i++){
-        var y=drops[i]*font;
-        ctx.fillStyle=Math.random()>.94?'rgba(192,255,210,.88)':'rgba(82,255,137,.58)';
-        ctx.fillText(glyphs.charAt((Math.random()*glyphs.length)|0),i*step,y);
-        if(y>height&&Math.random()>.982)drops[i]=Math.random()*-18;
-        else drops[i]+=.55+Math.random()*.45;
+    /* ---- 细节：债券逐笔 ---- */
+    cfg.bonds.forEach(function (bd, i) {
+      var rr = res.bonds.filter(function (o) { return o.addr === bd.addr; })[0];
+      if (!rr || !rr.count) return;
+      var n = Math.min(rr.count, LIMIT.entries);
+      if (bd.abi === 'burn') {
+        for (var k2 = 0; k2 < n; k2++) {
+          detail.push({ kind: 'burn', ref: rr, index: k2, to: bd.addr, data: SEL.deposit + A + u256(k2) });
+          detail.push({ kind: 'burnClaim', ref: rr, index: k2, to: bd.addr, data: SEL.claimable + A + u256(k2) });
+        }
+      } else {
+        detail.push({ kind: 'bondList', ref: rr, to: bd.addr, data: SEL.bondData + A });
       }
+    });
+
+    if (detail.length) {
+      var det = await callMany(chainKey, detail);
+      for (var d = 0; d < detail.length; d++) {
+        var it = detail[d], raw = det[d];
+        if (raw === null) continue;
+        if (it.kind === 'lock') {
+          var w2 = words(raw);
+          it.ref.items.push({
+            principal: w2[0] || 0n,
+            matBlock: w2[3] || 0n,
+            startBlock: w2[5] || 0n,
+            accrued: w2[10] || 0n
+          });
+        } else if (it.kind === 'burn') {
+          var w3 = words(raw);
+          it.ref.deposits[it.index] = it.ref.deposits[it.index] || {};
+          it.ref.deposits[it.index].principal = w3[0] || 0n;
+          it.ref.principal += (w3[0] || 0n);
+        } else if (it.kind === 'burnClaim') {
+          var v = hexToBig(raw);
+          it.ref.deposits[it.index] = it.ref.deposits[it.index] || {};
+          it.ref.deposits[it.index].claimable = v;
+          it.ref.claimable += v;
+          it.ref.payable = it.ref.claimable;
+        } else if (it.kind === 'bondList') {
+          var arr = words(raw);
+          if (arr.length >= 2) {
+            var off2 = Number(arr[0] / 32n), len = Number(arr[off2] || 0n), p = off2 + 1;
+            for (var q = 0; q < len && p + 7 < arr.length; q++, p += 8) {
+              var id = arr[p + 1], payout = arr[p + 2];
+              it.ref.deposits.push({
+                id: id, payout: payout, vesting: arr[p + 3], lastBlock: arr[p + 4],
+                pricePaid: arr[p + 5], gons: arr[p + 6] || 0n, value: null
+              });
+            }
+          }
+        }
+      }
+      /* 债券待领额：逐笔 pendingPayoutFor（vesting 结束后才可领） */
+      // 债券逐笔待领（第二次精确回填）
+      await fillBondPending(chainKey, res, A, cfg);
     }
-    resize();window.addEventListener('resize',resize,{passive:true});requestAnimationFrame(frame);
+
+    res.bt = bt;
+    return res;
   }
-  initMatrix();
-  start();
+
+  async function fillBondPending(chain, res, A, cfg) {
+    var jobs = [];
+    res.bonds.forEach(function (bb) {
+      if (bb.abi === 'burn') return;
+      bb.claimable = 0n; bb.payable = 0n;
+      bb.deposits.forEach(function (dp) {
+        jobs.push({ dp: dp, to: bb.addr, data: SEL.pendingPayoutFor + A + u256(dp.id) });
+      });
+    });
+    if (!jobs.length) return;
+    var out = await callMany(chain, jobs.map(function (j) { return { to: j.to, data: j.data }; }));
+    jobs.forEach(function (j, i) {
+      var v = out[i] === null || out[i] === undefined ? 0n : hexToBig(out[i]);
+      j.dp.claimable = v;
+    });
+
+    /* 债券应付按 gons 现值折算（gons 随 rebase 增长，payout 只是存入时的快照） */
+    var gj = [];
+    res.bonds.forEach(function (bb) {
+      if (bb.abi === 'burn') return;
+      bb.deposits.forEach(function (dp) { if (dp && dp.gons > 0n) gj.push(dp); });
+    });
+    var vals = gj.length
+      ? await callMany(chain, gj.map(function (dp) { return { to: cfg.slgns, data: SEL.balanceForGons + u256(dp.gons) }; }))
+      : [];
+    gj.forEach(function (dp, i) {
+      var v = vals[i];
+      dp.value = (v === null || v === undefined) ? null : hexToBig(v);
+    });
+
+    res.bonds.forEach(function (bb) {
+      if (bb.abi === 'burn') return;
+      bb.deposits.forEach(function (dp) {
+        if (!dp) return;
+        var amt = (dp.value !== null && dp.value > 0n) ? dp.value : (dp.payout || 0n);
+        dp.owed = amt;
+        bb.payable += amt;
+        bb.claimable += (dp.claimable || 0n);
+      });
+    });
+  }
+
+  /* ========================================================================
+     4. 汇总口径
+     ====================================================================== */
+  function lockPrincipal(c) {
+    return c.locks.reduce(function (s, l) { return s + (l.principal || 0n); }, 0n);
+  }
+  function lockAccrued(c) {
+    var t = 0n;
+    c.locks.forEach(function (l) { (l.items || []).forEach(function (it) { t += it.accrued || 0n; }); });
+    return t;
+  }
+  // 金本位债券：合约记录的应付 LGNS（销毁债券按 getClaimable）
+  function bondPayable(c) { return c.bonds.reduce(function (s, b) { return s + (b.payable || 0n); }, 0n); }
+  function bondClaim(c) { return c.bonds.reduce(function (s, b) { return s + (b.claimable || 0n); }, 0n); }
+  function rewardSum(c) { return c.rewards.reduce(function (s, r) { return s + (r.raw || 0n); }, 0n); }
+  // 持仓：钱包 + sLGNS + 热身期 + 锁仓现值（锁仓现值 = ΣbalanceForGons(gons)，已含已产生收益）
+  function otherPrincipal(c) {
+    return (c.others || []).reduce(function (s2, o) { return s2 + (o.principal || 0n); }, 0n);
+  }
+  function holdings(c) {
+    return (c.lgns ? c.lgns.raw : 0n) + (c.flex ? c.flex.raw : 0n) +
+           (c.warmup ? c.warmup.raw : 0n) + lockPrincipal(c) + otherPrincipal(c);
+  }
+  // 锁仓已计息：已折进锁仓现值，只展示不叠加
+  function lockAccruedOnly(c) { return lockAccrued(c); }
+  // 其它合约待领（涡轮/蛛网/DAO/社区）：独立合约，领取不影响任何持仓，计入
+  function rewardPending(c) { return rewardSum(c); }
+  // 总币量 = 持仓（含锁仓收益） + 金本位债券应付 + 其它合约待领
+  function chainTotal(c) { return holdings(c) + bondPayable(c) + rewardSum(c); }
+
+  async function queryWallet(address) {
+    var chains = await Promise.all([readChain('polygon', address), readChain('anubis', address)]);
+    return { address: address, chains: chains };
+  }
+
+  /* ========================================================================
+     5. 渲染
+     ====================================================================== */
+  function row(label, value, unit, opts) {
+    opts = opts || {};
+    var cls = 'row' + (opts.cls ? ' ' + opts.cls : '');
+    var zero = opts.zero ? ' zero' : '';
+    return '<div class="' + cls + zero + '">' +
+      '<div class="l">' + label + (opts.sub ? '<small>' + opts.sub + '</small>' : '') + '</div>' +
+      '<div class="r"' + (opts.title ? ' title="' + esc(opts.title) + '"' : '') + '>' + value +
+      (unit ? '<em>' + unit + '</em>' : '') + '</div></div>';
+  }
+
+  function chainCard(c, wallet) {
+    var cfg = c.cfg;
+    var hold = holdings(c), gold = bondPayable(c), rw = rewardSum(c);
+    var total = hold + gold + rw;
+
+    var h = '<section class="card">';
+
+    /* 头部 */
+    h += '<div class="ch"><span class="pill ' + cfg.cls + '">' + cfg.name + '</span>' +
+      '<div class="tot"><span>本链总币量</span><b>' + fmt(total, 9) + '</b>' +
+      '<span style="color:#7d94aa;margin-top:2px">持仓 ' + fmt(hold, 9) +
+      (gold > 0n ? ' · 债券 ' + fmt(gold, 9) : '') + (rw > 0n ? ' · 奖励 ' + fmt(rw, 9) : '') + '</span></div>' +
+      '<a class="verify" href="' + cfg.explorer + wallet + '" target="_blank" rel="noopener">链上验证 ↗ ' + esc(short(wallet)) + '</a></div>';
+
+    /* 持仓构成 */
+    h += '<div class="sec"><div class="sec-h">持仓构成 <span class="hint">计入</span></div>';
+    h += row('钱包内自由持有', fmt(c.lgns ? c.lgns.raw : null, 9), 'LGNS',
+      { zero: c.lgns && c.lgns.raw === 0n, sub: '链上 ERC-20 余额' });
+    h += row('活期质押 sLGNS', fmt(c.flex ? c.flex.raw : null, 9), 'LGNS',
+      { zero: c.flex && c.flex.raw === 0n, sub: '随 rebase 增长，1:1 计 LGNS' });
+    h += row('热身期待质押', fmt(c.warmup ? c.warmup.raw : null, 9), 'LGNS',
+      { sub: '已质押、尚未转为 sLGNS', zero: c.warmup && c.warmup.raw === 0n });
+    h += row('锁仓现值', fmt(lockPrincipal(c), 9), 'LGNS',
+      { cls: 'sum', sub: '按 gons 折算，已含锁仓内产生的收益', title: exact(lockPrincipal(c), 9) + ' LGNS' });
+    if (otherPrincipal(c) > 0n) {
+      h += row('ILO / 其他质押', fmt(otherPrincipal(c), 9), 'LGNS',
+        { sub: 'A 币各期质押、金库、折扣/即时/积分质押' });
+    }
+    h += '</div>';
+
+    /* 锁仓明细 */
+    var activeLocks = c.locks.filter(function (l) { return (l.principal || 0n) > 0n || l.items.length; });
+    if (activeLocks.length) {
+      h += '<details><summary>锁仓明细 <span class="m">' + activeLocks.length + ' 项 · ' +
+        activeLocks.reduce(function (s, l) { return s + (l.count || 0); }, 0) + ' 笔</span></summary><div class="dbody">';
+      activeLocks.forEach(function (l) {
+        var acc = (l.items || []).reduce(function (s2, it) { return s2 + (it.accrued || 0n); }, 0n);
+        h += '<div class="lock"><div class="lock-h"><span>' + esc(l.label) + '</span>' +
+          '<span class="m" title="' + esc(exact(l.principal || 0n, 9)) + ' LGNS">现值 ' + fmt(l.principal, 9) +
+          ' · ' + (l.count || 0) + ' 笔</span></div>';
+        if (l.items.length) {
+          var live = [], closed = 0;
+          l.items.forEach(function (it, i) {
+            if (it.principal === 0n && it.accrued === 0n) { closed++; return; }
+            live.push({ it: it, i: i });
+          });
+          live.forEach(function (o) {
+            var it = o.it, md = matDate(it.matBlock, c.bt), dl = daysLeft(it.matBlock, c.bt);
+            var when = md ? (dl !== null && dl < 0
+              ? '已于 ' + md + ' 到期'
+              : '到期 ' + md + (dl !== null ? ' · 剩 ' + dl + ' 天' : '')) : '';
+            h += '<div class="ent"><span>#' + (o.i + 1) + ' 本金 <b>' + fmt(it.principal, 9) + '</b> ' +
+              (when ? '<span style="color:#8aa3ba"> · ' + when + '</span>' : '') + '</span>' +
+              '<span class="rr">已计息 <b>' + fmt(it.accrued, 9) + '</b></span></div>';
+          });
+          if (closed) {
+            h += '<div class="ent" style="border-left-color:rgba(140,200,255,.10);color:#7e94a9">' +
+              '另有 ' + closed + ' 笔历史记录已结清（本金 0），不计入</div>';
+          }
+        }
+        h += '</div>';
+      });
+      h += '<div class="note" style="margin:6px 0 0">锁仓现值按 gons 实时折算：本金锁仓后 gons 会随收益增长，' +
+        '所以「现值」本身已包含锁仓产生的收益。领取会减少 gons，现值随之下降，因此不再重复叠加「未领收益」。</div>';
+      h += '</div></details>';
+    }
+
+    /* 金本位债券 */
+    if (c.bonds.length) {
+      var heldBonds = c.bonds.filter(function (b) { return b.count > 0; });
+      h += '<details' + (heldBonds.length ? ' open' : '') + '><summary>金本位债券（计入） <span class="m">' +
+        (heldBonds.length ? fmt(gold, 9) + ' LGNS' : c.bonds.length + ' 类 · 无持仓') + '</span></summary><div class="dbody">';
+      if (!heldBonds.length) {
+        h += '<div class="ent" style="border-left-color:rgba(140,200,255,.12)"><span>已核对 ' + c.bonds.length +
+          ' 类债券合约（30/60/120/240/360/600 天 DAI、USDT、WBTC、wETH、LP 系列），当前无存入。</span></div>';
+      }
+      heldBonds.forEach(function (b) {
+        h += '<div class="lock"><div class="lock-h"><span>' + esc(b.label) + '</span>' +
+          '<span class="m">' + b.count + ' 笔 · 应付 ' + fmt(b.payable, 9) + ' LGNS</span></div>';
+        if (b.principal > 0n) {
+          h += '<div class="ent"><span>存入本金 <b>' + fmt(b.principal, b.dec) + '</b> ' + esc(b.sym) + '</span>' +
+            '<span class="rr">可领 <b>' + fmt(b.claimable, 9) + '</b> LGNS</span></div>';
+        }
+        b.deposits.forEach(function (d, i) {
+          if (!d) return;
+          var owed = (d.owed !== undefined && d.owed !== null) ? d.owed : (d.claimable || 0n);
+          h += '<div class="ent" style="border-left-color:rgba(140,200,255,.08)"><span>#' + (i + 1) +
+            ' 存入 ' + (b.abi === 'burn' ? fmt(d.principal, b.dec) + ' ' + esc(b.sym) : fmt(d.payout, 9) + ' LGNS') +
+            '</span><span class="rr">应付 <b>' + fmt(owed, 9) + '</b></span></div>';
+        });
+        h += '</div>';
+      });
+      h += '<div class="note" style="margin:6px 0 0">金本位债券（DAI 本位 / 固定价值）支付的 LGNS 与钱包持仓相互独立，' +
+        '领取不会减少任何持仓，因此计入总币量。</div>';
+      h += '</div></details>';
+    }
+
+    /* 其它合约待领（计入） */
+    if (c.rewards.length) {
+      h += '<details' + (rw > 0n ? ' open' : '') + '><summary>涡轮 / 蛛网 / DAO（计入） <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
+      c.rewards.forEach(function (r) {
+        h += row(esc(r.label), fmt(r.raw, 9), 'LGNS', {
+          zero: r.raw === 0n,
+          sub: r.kind === 'turbine'
+            ? '涡轮合约内可领余额'
+            : '累计 ' + fmt(r.total, 9) + ' · 已领 ' + fmt(r.claimed, 9),
+          title: r.kind === 'turbine'
+            ? 'getTurbineBal 返回的可领余额'
+            : '未领取 = 累计 ' + exact(r.total, 9) + ' − 已领 ' + exact(r.claimed, 9)
+        });
+      });
+      h += '<div class="note" style="margin:6px 0 0">这些奖励在独立合约里累积，领取只进钱包、不会减少任何持仓，' +
+        '所以直接计入总币量。</div>';
+      h += '</div></details>';
+    }
+
+    /* 锁仓已计息：仅参考 */
+    if (lockAccrued(c) > 0n) {
+      h += '<details><summary>锁仓已计息（仅参考，不叠加） <span class="m">' + fmt(lockAccrued(c), 9) + '</span></summary><div class="dbody">';
+      h += row('锁仓累计产生收益', fmt(lockAccrued(c), 9), 'LGNS',
+        { sub: '已折算进上方「锁仓现值」，再相加会重复' });
+      h += '<div class="note" style="margin:6px 0 0">锁仓按 gons 计息，收益实时长进 gons，领取会减少 gons、现值随之下降。' +
+        '因此这部分只作参考，不再加到总币量里。</div>';
+      h += '</div></details>';
+    }
+
+    /* ILO / 其他质押（计入） */
+    if (c.others.length) {
+      var op = otherPrincipal(c);
+      h += '<details' + (op > 0n ? ' open' : '') + '><summary>ILO / 其他质押（计入） <span class="m">' + fmt(op, 9) + '</span></summary><div class="dbody">';
+      c.others.forEach(function (o) {
+        h += row(esc(o.label), fmt(o.principal, 9), 'LGNS', {
+          zero: o.principal === 0n,
+          sub: 'getDepositorBalance 现值'
+        });
+      });
+      h += '<div class="note" style="margin:6px 0 0">ILO 系列（A 币 120/240/360 天、A 币代币质押、金库、折扣/即时/积分质押）的仓位同样是 LGNS 计价，' +
+        '已按合约现值计入本链总币量。</div>';
+      h += '</div></details>';
+    }
+
+    /* 其他资产 */
+    var nz = c.extras.filter(function (x) { return x.raw > 0n; });
+    h += '<details><summary>钱包其他资产 <span class="m">' +
+      (nz.length ? nz.length + ' 项有余额' : '无') + '</span></summary><div class="dbody">';
+    (nz.length ? nz : c.extras).forEach(function (x) {
+      h += row(esc(x.label), fmt(x.raw, x.dec), esc(x.sym), { zero: x.raw === 0n });
+    });
+    if (nz.length) h += '<div class="note">另有 ' + (c.extras.length - nz.length) + ' 种已核对的代币余额为 0（DAI / USDT / WBTC / wETH / A / LP 等），非 LGNS 资产不计入总量。</div>';
+    h += '</div></details>';
+
+    var checked = (cfg.locks.length + cfg.others.length + cfg.bonds.length + cfg.rewards.length + cfg.extras.length + 3);
+    var readable = (c.locks.length + c.others.length + c.bonds.length + c.rewards.length + c.extras.length + 3);
+    h += '<div class="note">已核对 ' + cfg.name + ' 上 ' + checked + ' 个合约接口（含 0 余额项），可读 ' + readable +
+      ' 个；不可读的通常已下线或接口变更，不会计入总量。</div>';
+    if (c.errors.length) h += '<div class="errbox">' + esc(c.errors.join('；')) + '</div>';
+    h += '</section>';
+    return h;
+  }
+
+  function walletBlock(w) {
+    var p = w.chains[0], a = w.chains[1];
+    var tp = chainTotal(p), ta = chainTotal(a);
+    var h = '<div class="wallet">';
+    h += '<div class="wallet-head"><div class="who">' + esc(short(w.address)) +
+      '<span class="addr">' + esc(w.address) + '</span>' +
+      '<button type="button" data-copy="' + esc(w.address) + '">复制地址</button>' +
+      (state.last && state.last.length === 1 ? '<button type="button" data-copy-summary="1">复制结果</button>' : '') + '</div>' +
+      '<div class="wallet-sum"><span>Polygon ' + fmt(tp, 9) + '</span>' +
+      '<span>Anubis ' + fmt(ta, 9) + '</span><b>' + fmt(tp + ta, 9) + ' LGNS</b></div></div>';
+    h += '<div class="grid">' + chainCard(p, w.address) + chainCard(a, w.address) + '</div>';
+    h += '</div>';
+    return h;
+  }
+
+  function render(wallets) {
+    var P = 0n, A = 0n, goldP = 0n, goldA = 0n, rwAll = 0n, free = 0n, flex = 0n, warm = 0n, lock = 0n, iloAll = 0n;
+    wallets.forEach(function (w) {
+      var p = w.chains[0], a = w.chains[1];
+      P += holdings(p); A += holdings(a);
+      iloAll += otherPrincipal(p) + otherPrincipal(a);
+      goldP += bondPayable(p); goldA += bondPayable(a);
+      rwAll += rewardSum(p) + rewardSum(a);
+      free += (p.lgns ? p.lgns.raw : 0n) + (a.lgns ? a.lgns.raw : 0n);
+      flex += (p.flex ? p.flex.raw : 0n) + (a.flex ? a.flex.raw : 0n);
+      warm += (p.warmup ? p.warmup.raw : 0n) + (a.warmup ? a.warmup.raw : 0n);
+      lock += lockPrincipal(p) + lockPrincipal(a);
+    });
+    var hold = P + A, gold = goldP + goldA, total = hold + gold + rwAll;
+    var chainP = P + goldP + rewardSum(wallets[0].chains[0]), chainA = A + goldA + rewardSum(wallets[0].chains[1]);
+
+    var h = '';
+    h += '<div class="hero">' +
+      '<div><div class="k">总币量 <i>持仓 + 债券 + 奖励</i></div>' +
+      '<div class="v" title="' + esc(exact(total, 9)) + '">' + fmt2(total, 9) + '<small>LGNS</small></div>' +
+      '<div class="eq">钱包 ' + fmt(free, 9) + ' + 活期 ' + fmt(flex, 9) + ' + 热身期 ' + fmt(warm, 9) +
+      ' + 锁仓现值 ' + fmt(lock, 9) + (iloAll > 0n ? ' + ILO ' + fmt(iloAll, 9) : '') + (gold > 0n ? ' + 债券 ' + fmt(gold, 9) : '') +
+      (rwAll > 0n ? ' + 奖励 ' + fmt(rwAll, 9) : '') + '</div></div>' +
+      '<div class="hero-side">' +
+      '<div class="mini"><span>其中持仓</span><b>' + fmt(hold, 9) + '</b></div>' +
+      '<div class="mini mute"><span>债券 + 奖励待领</span><b>' + fmt(gold + rwAll, 9) + '</b></div>' +
+      '</div>' +
+      '<div class="split">' +
+      '<div class="bar"><div class="t"><span>Polygon</span><b>' + fmt(chainP, 9) + '</b></div><div class="track"><div class="fill" style="width:' + pct(chainP, total) + '%"></div></div></div>' +
+      '<div class="bar"><div class="t"><span>Anubis</span><b>' + fmt(chainA, 9) + '</b></div><div class="track"><div class="fill" style="width:' + pct(chainA, total) + '%"></div></div></div>' +
+      '</div></div>';
+
+    if (wallets.length > 1) {
+      h += '<div class="wallet"><div class="wallet-head"><div class="who">' + wallets.length + ' 个钱包合计' +
+        '<button type="button" data-copy-summary="1">复制汇总</button></div>' +
+        '<div class="wallet-sum"><b>' + fmt(total, 9) + ' LGNS</b></div></div></div>';
+    }
+    wallets.forEach(function (w) { h += walletBlock(w); });
+    return h;
+  }
+  function pct(a, b) {
+    if (!b) return 0;
+    var v = Number(a * 10000n / b) / 100;
+    return Math.max(0, Math.min(100, v));
+  }
+
+  /* ========================================================================
+     6. 交互
+     ====================================================================== */
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { busy: false, last: null };
+  var WKEY = 'lgns_holdings_wallets_v2';
+
+  function parseAddrs(text) {
+    var raw = String(text || '').split(/[\s,;，；、]+/).filter(Boolean);
+    var valid = [], invalid = [], seen = {};
+    raw.forEach(function (a) {
+      if (!isAddr(a)) { invalid.push(a); return; }
+      var k = a.toLowerCase();
+      if (seen[k]) return;
+      seen[k] = 1; valid.push(a);
+    });
+    return { valid: valid, invalid: invalid };
+  }
+  function setStatus(html, cls) {
+    var el = $('status');
+    el.className = 'status' + (cls ? ' ' + cls : '');
+    el.innerHTML = html;
+  }
+  function loadSaved() {
+    try { return JSON.parse(localStorage.getItem(WKEY) || '[]').filter(isAddr); } catch (e) { return []; }
+  }
+  function saveSaved(list) {
+    try { localStorage.setItem(WKEY, JSON.stringify(list)); } catch (e) {}
+  }
+  function showSaved() {
+    var n = loadSaved().length;
+    $('saved').textContent = n ? '本机已记住 ' + n + ' 个钱包' : '';
+  }
+
+  async function run() {
+    if (state.busy) return;
+    var p = parseAddrs($('addr').value);
+    if (p.invalid.length) {
+      setStatus('地址格式不对：' + esc(p.invalid.slice(0, 3).join(', ')) + '（需 0x 开头 42 位）', 'err');
+      return;
+    }
+    if (!p.valid.length) { setStatus('请先输入至少一个钱包地址', 'err'); return; }
+    if (p.valid.length > LIMIT.wallets) {
+      setStatus('一次最多 ' + LIMIT.wallets + ' 个钱包', 'err');
+      return;
+    }
+
+    state.busy = true;
+    $('go').disabled = true;
+    $('go').textContent = '查询中…';
+    $('empty').style.display = 'none';
+    $('out').innerHTML = '';
+    saveSaved(p.valid);
+    showSaved();
+    setStatus('<span class="spin"></span>正在读取 ' + p.valid.length + ' 个钱包的双链数据…', 'live');
+
+    try {
+      var done = 0, results = new Array(p.valid.length);
+      var next = 0;
+      async function worker() {
+        while (next < p.valid.length) {
+          var i = next++;
+          results[i] = await queryWallet(p.valid[i]);
+          done++;
+          setStatus('<span class="spin"></span>已完成 ' + done + ' / ' + p.valid.length + ' 个钱包…', 'live');
+        }
+      }
+      await Promise.all([worker(), worker()]);
+
+      state.last = results;
+      $('out').innerHTML = render(results);
+
+      var errs = 0;
+      results.forEach(function (w) {
+        w.chains.forEach(function (c) { errs += c.errors.length; });
+      });
+      setStatus('✓ 查询完成 · ' + new Date().toLocaleString('zh-CN') +
+        (errs ? ' · ' + errs + ' 项提示' : ''), 'live');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      setStatus('查询失败：' + esc(e && e.message ? e.message : '网络异常') + '。可稍后重试。', 'err');
+    } finally {
+      state.busy = false;
+      $('go').disabled = false;
+      $('go').textContent = '查询持仓';
+    }
+  }
+
+  function summaryText() {
+    if (!state.last) return '';
+    var lines = [];
+    var P = 0n, A = 0n, lockAcc = 0n;
+    state.last.forEach(function (w) {
+      P += chainTotal(w.chains[0]); A += chainTotal(w.chains[1]);
+      lockAcc += lockAccrued(w.chains[0]) + lockAccrued(w.chains[1]);
+    });
+    lines.push('LGNS 总币量：' + fmt(P + A, 9));
+    lines.push('Polygon：' + fmt(P, 9));
+    lines.push('Anubis：' + fmt(A, 9));
+    lines.push('（锁仓已计息 ' + fmt(lockAcc, 9) + ' 已含在锁仓现值内，不重复相加）');
+    lines.push('钱包：' + state.last.map(function (w) { return w.address; }).join(', '));
+    return lines.join('\n');
+  }
+
+  function init() {
+    $('go').addEventListener('click', run);
+    $('clear').addEventListener('click', function () {
+      $('addr').value = ''; $('out').innerHTML = ''; $('empty').style.display = '';
+      setStatus(''); $('addr').focus();
+    });
+    $('forget').addEventListener('click', function () {
+      try { localStorage.removeItem(WKEY); } catch (e) {}
+      showSaved(); setStatus('已清除本机记忆的钱包地址');
+    });
+    $('addr').addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+    });
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && t.dataset && t.dataset.copy) {
+        navigator.clipboard && navigator.clipboard.writeText(t.dataset.copy);
+        var old = t.textContent; t.textContent = '已复制';
+        setTimeout(function () { t.textContent = old; }, 1200);
+      }
+      if (t && t.dataset && t.dataset.copySummary) {
+        navigator.clipboard && navigator.clipboard.writeText(summaryText());
+        var o2 = t.textContent; t.textContent = '已复制';
+        setTimeout(function () { t.textContent = o2; }, 1200);
+      }
+    });
+    var saved = loadSaved();
+    if (saved.length) $('addr').value = saved.join('\n');
+    showSaved();
+    try {
+      var q = new URLSearchParams(location.search).get('addr');
+      if (q) { $('addr').value = q; run(); }
+    } catch (e) {}
+  }
+
+  if (typeof document !== 'undefined' && document.getElementById('addr')) init();
+  if (typeof window !== 'undefined') {
+    window.__WQ = { queryWallet: queryWallet, holdings: holdings, bondPayable: bondPayable, rewardSum: rewardSum, chainTotal: chainTotal, otherPrincipal: otherPrincipal, fmt: fmt, CHAINS: CHAINS, render: render };
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { queryWallet: queryWallet, holdings: holdings, bondPayable: bondPayable, rewardSum: rewardSum, chainTotal: chainTotal, lockPrincipal: lockPrincipal, lockAccrued: lockAccrued, otherPrincipal: otherPrincipal, fmt: fmt, CHAINS: CHAINS };
+  }
 })();
 </script>
 </body>
