@@ -64,7 +64,7 @@ textarea.q{
 }
 textarea.q::placeholder{color:#4f6579}
 textarea.q:focus{outline:none;border-color:rgba(124,200,255,.62);box-shadow:0 0 0 3px rgba(124,200,255,.1)}
-.qrow{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap}
+.qrow{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap;margin-bottom:2px}
 button{font:inherit;cursor:pointer}
 .btn{
   flex:1 1 auto;min-height:46px;padding:11px 22px;border-radius:12px;border:1px solid transparent;
@@ -81,9 +81,6 @@ button{font:inherit;cursor:pointer}
   box-shadow:none;font-weight:600;font-size:13px;padding:11px 16px;
 }
 .btn.ghost:hover{color:#d9ecff;border-color:rgba(124,200,255,.45)}
-.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px;color:var(--dim);font-size:11.5px}
-.meta .sp{flex:1 1 100%;height:0}
-.meta button{background:none;border:0;color:#86cdff;font-size:11.5px;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
 .status{margin:14px 0 0;font-size:13px;color:#8fa9c1;min-height:20px}
 .status.live{color:#b9ddff}
 .status.err{color:var(--bad)}
@@ -224,12 +221,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       <button class="btn" id="go" type="button">查询持仓</button>
       <button class="btn ghost" id="clear" type="button">清空</button>
     </div>
-    <div class="meta">
-      <span id="saved"></span>
-      <button id="forget" type="button">清除本机记忆的钱包</button>
-      <span class="sp"></span>
-      <span>⌘/Ctrl + Enter 快速查询</span>
-    </div>
   </div>
 
   <div class="status" id="status"></div>
@@ -241,7 +232,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     口径：总币量 = 钱包 LGNS + 活期 sLGNS + 热身期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 金本位债券应收 LGNS + 涡轮/蛛网/DAO 待领<br>
     锁仓「已计息」已包含在锁仓现值里，只作参考、不重复相加；债券与涡轮等奖励来自独立合约，领取不影响持仓，照实相加<br>
     覆盖：两链 LGNS / sLGNS、质押池热身期、Polygon 7 类锁仓（60/120/240/360/360V2/600 天 + 能量值）、Anubis 2 类长期锁仓、
-    17 类债券、7 个奖励合约、钱包内 DAI / USDT / WBTC / wETH / A / LP / GLGNS 等代币；NFT、彩票、ILO、治理类不产生 LGNS 余额，未计入数量统计
+    17 类债券、7 个奖励合约、ILO 系列质押仓位、钱包内 DAI / USDT / WBTC / wETH / A / LP / GLGNS 等代币；NFT、彩票、治理类不产生 LGNS 余额，未计入数量统计
   </div>
 </div>
 
@@ -644,7 +635,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     for (var j = 0; j < cfg.others.length; j++) {
       var ot = big('otherTotal' + j);
       if (ot === null) continue;
-      res.others.push({ label: cfg.others[j].label, addr: cfg.others[j].addr, unit: cfg.others[j].unit || '', principal: ot, count: null });
+      res.others.push({ label: cfg.others[j].label, addr: cfg.others[j].addr, principal: ot });
     }
 
     /* ---- 债券 ---- */
@@ -865,10 +856,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       { sub: '已质押、尚未转为 sLGNS', zero: c.warmup && c.warmup.raw === 0n });
     h += row('锁仓现值', fmt(lockPrincipal(c), 9), 'LGNS',
       { cls: 'sum', sub: '按 gons 折算，已含锁仓内产生的收益', title: exact(lockPrincipal(c), 9) + ' LGNS' });
-    if (otherPrincipal(c) > 0n) {
-      h += row('ILO / 其他质押', fmt(otherPrincipal(c), 9), 'LGNS',
-        { sub: 'A 币各期质押、金库、折扣/即时/积分质押' });
-    }
     h += '</div>';
 
     /* 锁仓明细 */
@@ -1098,10 +1085,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   function saveSaved(list) {
     try { localStorage.setItem(WKEY, JSON.stringify(list)); } catch (e) {}
   }
-  function showSaved() {
-    var n = loadSaved().length;
-    $('saved').textContent = n ? '本机已记住 ' + n + ' 个钱包' : '';
-  }
 
   async function run() {
     if (state.busy) return;
@@ -1122,7 +1105,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     $('empty').style.display = 'none';
     $('out').innerHTML = skeleton();
     saveSaved(p.valid);
-    showSaved();
     setStatus('<span class="spin"></span>正在读取 ' + p.valid.length + ' 个钱包的双链数据…', 'live');
 
     try {
@@ -1177,12 +1159,13 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   function init() {
     $('go').addEventListener('click', run);
     $('clear').addEventListener('click', function () {
-      $('addr').value = ''; $('out').innerHTML = ''; $('empty').style.display = '';
-      setStatus(''); $('addr').focus();
-    });
-    $('forget').addEventListener('click', function () {
-      try { localStorage.removeItem(WKEY); } catch (e) {}
-      showSaved(); setStatus('已清除本机记忆的钱包地址');
+      $('addr').value = '';
+      $('out').innerHTML = '';
+      $('empty').style.display = '';
+      state.last = null;
+      try { localStorage.removeItem(WKEY); } catch (e) {}   // 同时清掉本机记住的钱包
+      setStatus('已清空输入与本机记住的钱包');
+      $('addr').focus();
     });
     $('addr').addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); }
@@ -1202,7 +1185,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     });
     var saved = loadSaved();
     if (saved.length) $('addr').value = saved.join('\n');
-    showSaved();
     try {
       var q = new URLSearchParams(location.search).get('addr');
       if (q) { $('addr').value = q; run(); }
