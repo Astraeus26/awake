@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,follow">
 <meta name="color-scheme" content="dark">
 <title>双链 LGNS 总币量查询 · 持仓 + 金本位债券</title>
-<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、热身期、各期锁仓现值（含锁仓收益），以及金本位债券应收 LGNS。">
+<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值（含锁仓收益），以及金本位债券应收 LGNS。">
 <style>
 :root{
   --bg:#0d1a2c;
@@ -96,6 +96,8 @@ button{font:inherit;cursor:pointer}
 }
 .hero .k{font-size:12px;color:#8fb2cf;letter-spacing:.03em;display:flex;align-items:center;gap:7px}
 .hero .k i{font-style:normal;font-size:10px;padding:2px 7px;border-radius:6px;background:rgba(124,200,255,.14);color:#9dd8ff;border:1px solid rgba(124,200,255,.25)}
+.hero .k i.n{background:rgba(140,200,255,.07);color:#a9c2d8;border-color:rgba(140,200,255,.18)}
+.who .idx{font:700 10.5px/1 var(--mono);color:#8fb6d6;background:rgba(140,200,255,.1);border:1px solid rgba(140,200,255,.18);border-radius:5px;padding:3px 5px}
 .hero .v{margin:6px 0 4px;font:800 clamp(30px,6.6vw,44px)/1.05 var(--mono);letter-spacing:-.5px;color:#eaf4ff;text-shadow:0 0 34px rgba(124,200,255,.28)}
 .hero .v small{font-size:.42em;letter-spacing:0;color:var(--acc);margin-left:6px;font-weight:700}
 .hero .eq{font-size:11.5px;color:#7d94aa}
@@ -113,10 +115,9 @@ button{font:inherit;cursor:pointer}
 .bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(178,140,246,.9),rgba(124,200,255,.9));transition:width .6s cubic-bezier(.2,.7,.3,1)}
 
 /* ---------- 钱包 / 链卡 ---------- */
-.wallet{margin-top:22px}
+.wallet{margin-top:18px}
 .wallet-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:14px;background:linear-gradient(110deg,rgba(34,56,86,.9),rgba(6,12,20,.92));border:1px solid var(--line);margin-bottom:11px}
 .who{font-weight:750;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
-.who .addr{font:400 11px/1 var(--mono);color:var(--dim);letter-spacing:.2px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .who button{background:none;border:0;color:#6f93b5;font-size:11px;padding:2px 4px;white-space:nowrap;flex:0 0 auto}
 .who button:hover{color:var(--acc)}
 .wallet-sum{margin-left:auto;display:flex;align-items:baseline;gap:10px;font-size:12px;color:#93aec5;flex-wrap:wrap;justify-content:flex-end}
@@ -145,8 +146,9 @@ button{font:inherit;cursor:pointer}
 .sec-h .hint{margin-left:auto;font:600 10px/1 var(--mono);letter-spacing:0;text-transform:none;padding:3px 7px;border-radius:6px;background:rgba(124,200,255,.1);color:#9dd8ff}
 .sec-h .hint.off{background:rgba(255,179,122,.1);color:#ffc79a}
 
-.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(34,56,86,.6);border:1px solid rgba(140,200,255,.075);margin-bottom:6px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;transition:background .15s;border-radius:10px;background:rgba(34,56,86,.6);border:1px solid rgba(140,200,255,.075);margin-bottom:6px}
 .row:last-child{margin-bottom:0}
+.row:hover{background:rgba(140,200,255,.07)}
 .row .l{font-size:13px;color:#cfe0ef;min-width:0}
 .row .l small{display:block;color:#8ba1b8;font-size:11px;margin-top:2px}
 .row .r{font:600 13px/1.35 var(--mono);color:#eaf4ff;white-space:nowrap;text-align:right}
@@ -159,7 +161,7 @@ button{font:inherit;cursor:pointer}
 
 
 details{margin-top:6px;border-radius:12px;background:rgba(32,53,82,.52);border:1px solid rgba(140,200,255,.09)}
-details>summary{list-style:none;cursor:pointer;padding:9px 12px;font-size:12.5px;color:#b7d3e6;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(124,200,255,.07),transparent 70%);border-radius:11px}
+details>summary{list-style:none;cursor:pointer;padding:9px 12px;transition:background .15s;font-size:12.5px;color:#b7d3e6;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(124,200,255,.07),transparent 70%);border-radius:11px}
 details[open]>summary{border-bottom:1px solid rgba(140,200,255,.1);border-radius:11px 11px 0 0}
 details>summary::-webkit-details-marker{display:none}
 details>summary:before{content:"▸";color:#7cc8ff;font-size:10px;transition:transform .18s}
@@ -194,7 +196,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 .foot a{color:#6f93b5}
 
 @media(max-width:720px){
-  .who .addr{max-width:100%;flex-basis:100%;order:3}
   .hero{grid-template-columns:1fr;gap:14px}
   .hero .v{font-size:clamp(30px,9vw,40px)}
   .split{grid-template-columns:1fr}
@@ -209,7 +210,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   <div class="eyebrow"><span class="dot"></span><span>ORIGIN · DUAL-CHAIN HOLDINGS</span><span class="tag">READ ONLY</span></div>
   <h1>双链 <em>LGNS 总币量</em></h1>
   <p class="lede">
-    汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的全部 LGNS：钱包余额、活期 sLGNS、热身期待质押、各期锁仓现值，
+    汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的全部 LGNS：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值，
     <b>ILO 系列仓位</b>（A 币各期质押、金库等）、<b>金本位债券</b>（销毁债券 / 固定价值债券 / DAI·USDT·LP 等）的应收 LGNS，以及<b>涡轮、蛛网、DAO</b> 等独立奖励的待领。
     锁仓现值按 gons 实时折算、<b>已含锁仓内产生的收益</b>，这部分不再重复叠加。纯链上只读，不签名、不发送交易。
   </p>
@@ -229,9 +230,9 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
   <div class="foot">
     数据源：Polygon / Anubis 链上合约（eth_call，分批读取）· 只读查询 · 不需要连接钱包<br>
-    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 热身期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 金本位债券应收 LGNS + 涡轮/蛛网/DAO 待领<br>
+    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 预热质押期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 金本位债券应收 LGNS + 涡轮/蛛网/DAO 待领<br>
     锁仓「已计息」已包含在锁仓现值里，只作参考、不重复相加；债券与涡轮等奖励来自独立合约，领取不影响持仓，照实相加<br>
-    覆盖：两链 LGNS / sLGNS、质押池热身期、Polygon 7 类锁仓（60/120/240/360/360V2/600 天 + 能量值）、Anubis 2 类长期锁仓、
+    覆盖：两链 LGNS / sLGNS、质押池预热期、Polygon 7 类锁仓（60/120/240/360/360V2/600 天 + 能量值）、Anubis 2 类长期锁仓、
     17 类债券、7 个奖励合约、ILO 系列质押仓位、钱包内 DAI / USDT / WBTC / wETH / A / LP / GLGNS 等代币；NFT、彩票、治理类不产生 LGNS 余额，未计入数量统计
   </div>
 </div>
@@ -802,7 +803,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   // 金本位债券：合约记录的应付 LGNS（销毁债券按 getClaimable）
   function bondPayable(c) { return c.bonds.reduce(function (s, b) { return s + (b.payable || 0n); }, 0n); }
   function rewardSum(c) { return c.rewards.reduce(function (s, r) { return s + (r.raw || 0n); }, 0n); }
-  // 持仓：钱包 + sLGNS + 热身期 + 锁仓现值（锁仓现值 = ΣbalanceForGons(gons)，已含已产生收益）
+  // 持仓：钱包 + sLGNS + 预热质押期 + 锁仓现值（锁仓现值 = ΣbalanceForGons(gons)，已含已产生收益）
   function otherPrincipal(c) {
     return (c.others || []).reduce(function (s2, o) { return s2 + (o.principal || 0n); }, 0n);
   }
@@ -840,7 +841,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
     /* 头部 */
     h += '<div class="ch"><span class="pill ' + cfg.cls + '">' + cfg.name + '</span>' +
-      '<div class="tot"><span>本链总币量</span><b>' + fmt(total, 9) + '</b>' +
+      '<div class="tot"><span>本链总币量</span><b>' + fmt2(total, 9) + '</b>' +
       '<span class="parts"><i>持仓 ' + fmt(hold, 9) + '</i>' +
       (gold > 0n ? '<i>债券 ' + fmt(gold, 9) + '</i>' : '') +
       (rw > 0n ? '<i>奖励 ' + fmt(rw, 9) + '</i>' : '') + '</span></div>' +
@@ -852,7 +853,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       { zero: c.lgns && c.lgns.raw === 0n, sub: '链上 ERC-20 余额' });
     h += row('活期质押 sLGNS', fmt(c.flex ? c.flex.raw : null, 9), 'LGNS',
       { zero: c.flex && c.flex.raw === 0n, sub: '随 rebase 增长，1:1 计 LGNS' });
-    h += row('热身期待质押', fmt(c.warmup ? c.warmup.raw : null, 9), 'LGNS',
+    h += row('预热质押期', fmt(c.warmup ? c.warmup.raw : null, 9), 'LGNS',
       { sub: '已质押、尚未转为 sLGNS', zero: c.warmup && c.warmup.raw === 0n });
     h += row('锁仓现值', fmt(lockPrincipal(c), 9), 'LGNS',
       { cls: 'sum', sub: '按 gons 折算，已含锁仓内产生的收益', title: exact(lockPrincipal(c), 9) + ' LGNS' });
@@ -988,16 +989,17 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     return h;
   }
 
-  function walletBlock(w) {
+  function walletBlock(w, idx, total2) {
     var p = w.chains[0], a = w.chains[1];
     var tp = chainTotal(p), ta = chainTotal(a);
     var h = '<div class="wallet">';
-    h += '<div class="wallet-head"><div class="who">' + esc(short(w.address)) +
-      '<span class="addr">' + esc(w.address) + '</span>' +
+    h += '<div class="wallet-head"><div class="who">' +
+      ((total2 > 1) ? '<span class="idx">#' + ((idx || 0) + 1) + '</span>' : '') +
+      '<span title="' + esc(w.address) + '">' + esc(short(w.address)) + '</span>' +
       '<button type="button" data-copy="' + esc(w.address) + '">复制地址</button>' +
-      (state.last && state.last.length === 1 ? '<button type="button" data-copy-summary="1">复制结果</button>' : '') + '</div>' +
+      '<button type="button" data-copy-summary="1">复制结果</button></div>' +
       '<div class="wallet-sum"><span>Polygon ' + fmt(tp, 9) + '</span>' +
-      '<span>Anubis ' + fmt(ta, 9) + '</span><b>' + fmt(tp + ta, 9) + ' LGNS</b></div></div>';
+      '<span>Anubis ' + fmt(ta, 9) + '</span><b>' + fmt2(tp + ta, 9) + ' LGNS</b></div></div>';
     h += '<div class="grid">' + chainCard(p, w.address) + chainCard(a, w.address) + '</div>';
     h += '</div>';
     return h;
@@ -1021,9 +1023,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
     var h = '';
     h += '<div class="hero">' +
-      '<div><div class="k">总币量 <i>持仓 + 债券 + 奖励</i></div>' +
+      '<div><div class="k">总币量 <i>持仓 + 债券 + 奖励</i>' +
+      (wallets.length > 1 ? '<i class="n">' + wallets.length + ' 个钱包</i>' : '') + '</div>' +
       '<div class="v" title="' + esc(exact(total, 9)) + '">' + fmt2(total, 9) + '<small>LGNS</small></div>' +
-      '<div class="eq">钱包 ' + fmt(free, 9) + ' + 活期 ' + fmt(flex, 9) + ' + 热身期 ' + fmt(warm, 9) +
+      '<div class="eq">钱包 ' + fmt(free, 9) + ' + 活期 ' + fmt(flex, 9) + ' + 预热质押期 ' + fmt(warm, 9) +
       ' + 锁仓现值 ' + fmt(lock, 9) + (iloAll > 0n ? ' + ILO ' + fmt(iloAll, 9) : '') + (gold > 0n ? ' + 债券 ' + fmt(gold, 9) : '') +
       (rwAll > 0n ? ' + 奖励 ' + fmt(rwAll, 9) : '') + '</div></div>' +
       '<div class="hero-side">' +
@@ -1035,12 +1038,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       '<div class="bar"><div class="t"><span>Anubis</span><b>' + fmt(chainA, 9) + '</b></div><div class="track"><div class="fill" style="width:' + pct(chainA, total) + '%"></div></div></div>' +
       '</div></div>';
 
-    if (wallets.length > 1) {
-      h += '<div class="wallet"><div class="wallet-head"><div class="who">' + wallets.length + ' 个钱包合计' +
-        '<button type="button" data-copy-summary="1">复制汇总</button></div>' +
-        '<div class="wallet-sum"><b>' + fmt(total, 9) + ' LGNS</b></div></div></div>';
-    }
-    wallets.forEach(function (w) { h += walletBlock(w); });
+    wallets.forEach(function (w, i) { h += walletBlock(w, i, wallets.length); });
     return h;
   }
   function pct(a, b) {
