@@ -9,222 +9,358 @@
 <meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、预热质押期、长期质押现值、A Stake / 能量额度 / 即时・债券・能量点数・创世360 质押现值，以及债券应收 LGNS 与涡轮・蜘蛛网・DAO 待领。">
 <style>
 :root{
-  --bg:#0d1a2c;
-  --panel:rgba(40,66,100,.78);
-  
-  --line:rgba(160,210,255,.18);
-  
-  --ink:#e9f3ff;
-  --ink-2:#b6cade;
-  --dim:#8299b0;
-  --acc:#9ad6ff;
-  --acc-2:#dcf0ff;
-  --poly:#b9a3ff;
-  --anb:#7cc8ff;
-  --warn:#ffb37a;
-  --bad:#ff8f80;
+  color-scheme: light dark;
+  --ink:#111114;
+  --ink-2:#3c3c43;
+  --ink-3:#6b6b70;
+  --dim:#8a8a8f;
+  --acc:#0a84ff;
+  --acc-2:#0066d6;
+  --glass:rgba(255,255,255,.58);
+  --glass-2:rgba(255,255,255,.44);
+  --glass-3:rgba(255,255,255,.30);
+  --brd:rgba(255,255,255,.75);
+  --hair:rgba(60,60,67,.12);
+  --hi:rgba(255,255,255,.9);
+  --shadow:0 18px 50px rgba(23,43,77,.14),0 2px 8px rgba(23,43,77,.06);
+  --sheen:rgba(255,255,255,.55);
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --r-lg:26px;
+  --r-md:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ink:#f2f2f7;
+    --ink-2:#d1d1d6;
+    --ink-3:#a1a1aa;
+    --dim:#8b8b93;
+    --acc:#0a84ff;
+    --acc-2:#5ac8fa;
+    --glass:rgba(32,34,41,.62);
+    --glass-2:rgba(32,34,41,.50);
+    --glass-3:rgba(30,32,38,.38);
+    --brd:rgba(255,255,255,.16);
+    --hair:rgba(255,255,255,.12);
+    --hi:rgba(255,255,255,.16);
+    --shadow:0 18px 50px rgba(0,0,0,.5),0 2px 10px rgba(0,0,0,.3);
+    --sheen:rgba(255,255,255,.10);
+  }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
 html,body{margin:0}
 body{
   min-height:100vh;color:var(--ink);
-  font:14.5px/1.62 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  font:15px/1.56 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  letter-spacing:.002em;
   background:
-    radial-gradient(940px 560px at 82% -12%,rgba(94,176,255,.30),transparent 66%),
-    radial-gradient(740px 520px at 6% 8%,rgba(150,212,255,.14),transparent 64%),
-    linear-gradient(180deg,#05080e,#04070c 60%,#03050a);
+    radial-gradient(1100px 760px at 12% -6%,#d6e6ff 0%,transparent 62%),
+    radial-gradient(980px 720px at 88% 2%,#ecdcff 0%,transparent 64%),
+    radial-gradient(880px 820px at 66% 98%,#d6f6ef 0%,transparent 62%),
+    radial-gradient(760px 620px at 6% 90%,#ffe1ef 0%,transparent 60%),
+    linear-gradient(180deg,#f7f9fd,#eaeff7 58%,#e5ebf5);
   background-attachment:fixed;
 }
-body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
-  background-image:linear-gradient(rgba(140,200,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(140,200,255,.045) 1px,transparent 1px);
-  background-size:44px 44px;
-  mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 78%);
-  -webkit-mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 78%);
+@media (prefers-color-scheme: dark){
+  body{
+    background:
+      radial-gradient(1100px 760px at 12% -6%,#1d3054 0%,transparent 64%),
+      radial-gradient(980px 720px at 88% 2%,#33245a 0%,transparent 66%),
+      radial-gradient(880px 820px at 66% 98%,#123939 0%,transparent 64%),
+      radial-gradient(700px 520px at 4% 92%,#3a1f33 0%,transparent 62%),
+      linear-gradient(180deg,#0b0d12,#080a0f 60%,#06080c);
+  }
 }
-.shell{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:clamp(22px,4.6vw,46px) 16px 72px}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.28;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.06'/></svg>");
+}
+.shell{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:clamp(26px,5vw,54px) 18px 76px}
 
 /* ---------- 头部 ---------- */
-.eyebrow{display:flex;align-items:center;gap:9px;font:700 10px/1.3 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#9dd8ff;margin-bottom:14px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc);animation:pulse 2.2s ease-in-out infinite}
-.eyebrow .tag{margin-left:auto;border:1px solid rgba(124,200,255,.28);border-radius:99px;padding:4px 9px;color:#a3d4f5;letter-spacing:.08em}
-@keyframes pulse{50%{opacity:.4;box-shadow:0 0 3px var(--acc)}}
-h1{margin:0 0 8px;font-size:clamp(25px,4.6vw,34px);line-height:1.24;letter-spacing:.01em;font-weight:800}
-h1 em{font-style:normal;background:linear-gradient(96deg,#cfe9ff,#7cc8ff 60%,#4aa8f5);-webkit-background-clip:text;background-clip:text;color:transparent}
-.lede{margin:0 0 20px;padding:12px 15px;border-left:2px solid rgba(124,200,255,.6);border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(124,200,255,.075),transparent);color:#93a9bf;font-size:13px}
-.lede b{color:#d2e6fa;font-weight:600}
+/* topbar */
+.topbar{
+  margin:0 0 18px;padding:10px 15px;border-radius:14px;
+  background:var(--glass-3);border:1px solid var(--hair);
+  box-shadow:inset 0 1px 0 var(--hi);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+  display:flex;align-items:center;gap:9px;min-width:0;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#34c759;box-shadow:0 0 10px rgba(52,199,89,.7);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45;box-shadow:0 0 3px rgba(52,199,89,.35)}}
+h1{margin:0 0 10px;font-size:clamp(27px,4.6vw,36px);line-height:1.12;letter-spacing:-.025em;font-weight:700}
+h1 em{font-style:normal;background:linear-gradient(94deg,#0a84ff,#5e5ce6 62%,#bf5af2);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-wrap:balance}
+.sub{margin:0;flex:1 1 auto;min-width:0;font-size:12px;line-height:1.5;letter-spacing:.004em;color:var(--ink-3)}
+.sub b{color:var(--ink-2);font-weight:600}
 
 /* ---------- 输入 ---------- */
-.qcard{position:relative;padding:12px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.45),inset 0 1px rgba(220,238,255,.04)}
-textarea.q{
-  display:block;width:100%;min-height:92px;resize:vertical;padding:13px 14px;
-  color:#d9ecff;background:rgba(22,38,60,.86);border:1px solid rgba(124,200,255,.18);border-radius:12px;
-  font:13px/1.6 var(--mono);letter-spacing:.2px;transition:border-color .18s,box-shadow .18s;
+.qcard{
+  position:relative;padding:12px;border-radius:var(--r-lg);
+  background:var(--glass);border:1px solid var(--brd);
+  -webkit-backdrop-filter:blur(32px) saturate(190%);backdrop-filter:blur(32px) saturate(190%);
+  box-shadow:var(--shadow),inset 0 1px 0 var(--hi);
 }
-textarea.q::placeholder{color:#4f6579}
-textarea.q:focus{outline:none;border-color:rgba(124,200,255,.62);box-shadow:0 0 0 3px rgba(124,200,255,.1)}
-.qrow{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap;margin-bottom:2px}
+textarea.q{
+  display:block;width:100%;min-height:78px;resize:vertical;padding:14px 15px;
+  color:var(--ink);background:var(--glass-3);border:1px solid var(--hair);border-radius:14px;
+  font:13px/1.65 var(--mono);letter-spacing:.2px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+textarea.q::placeholder{color:var(--dim)}
+textarea.q:focus{outline:none;border-color:rgba(10,132,255,.5);box-shadow:0 0 0 4px rgba(10,132,255,.14);background:var(--glass-2)}
+.qrow{display:flex;gap:10px;margin-top:11px;flex-wrap:wrap}
 button{font:inherit;cursor:pointer}
 .btn{
-  flex:1 1 auto;min-height:46px;padding:11px 22px;border-radius:12px;border:1px solid transparent;
-  font-weight:800;font-size:14.5px;color:#04213a;
-  background:linear-gradient(135deg,#d9efff,#7cc8ff 55%,#3f9bff);
-  box-shadow:0 8px 24px rgba(70,160,255,.22),inset 0 1px rgba(255,255,255,.6);
-  transition:transform .16s,box-shadow .16s,filter .16s;
+  flex:1 1 auto;min-height:48px;padding:12px 22px;border-radius:14px;border:1px solid rgba(0,80,180,.28);
+  font-weight:600;font-size:15px;color:#fff;letter-spacing:.01em;
+  background:linear-gradient(180deg,#3d9bff,#0a7bf0);
+  box-shadow:0 10px 24px rgba(10,132,255,.28),inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,filter .18s;
 }
-.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 30px rgba(70,160,255,.32)}
-.btn:active:not(:disabled){transform:translateY(1px)}
-.btn:disabled{opacity:.55;cursor:default;filter:saturate(.7)}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 14px 30px rgba(10,132,255,.34),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn:active:not(:disabled){transform:scale(.985);filter:brightness(.97)}
+.btn:disabled{opacity:.5;cursor:default;filter:saturate(.7)}
 .btn.ghost{
-  flex:0 0 auto;color:#a9c8e0;background:rgba(34,56,86,.8);border-color:rgba(124,200,255,.22);
-  box-shadow:none;font-weight:600;font-size:13px;padding:11px 16px;
+  flex:0 0 auto;color:var(--ink-2);font-weight:500;font-size:14px;padding:12px 18px;
+  background:var(--glass-3);border:1px solid var(--hair);box-shadow:inset 0 1px 0 var(--hi);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
 }
-.btn.ghost:hover{color:#d9ecff;border-color:rgba(124,200,255,.45)}
-.status{margin:14px 0 0;font-size:13px;color:#8fa9c1;min-height:20px}
-.status.live{color:#b9ddff}
-.status.err{color:var(--bad)}
-.spin{display:inline-block;width:12px;height:12px;margin-right:7px;vertical-align:-1px;border:2px solid rgba(124,200,255,.25);border-top-color:var(--acc);border-radius:50%;animation:rot .8s linear infinite}
+.btn.ghost:hover{color:var(--ink);background:var(--glass-2);transform:none}
+.status{margin-left:auto;flex:0 0 auto;font-size:11.5px;color:var(--ink-3);text-align:right;line-height:1.5;white-space:nowrap}
+.status.live{color:var(--ink-2)}
+.status.err{color:#d70015}
+@media (prefers-color-scheme: dark){.status.err{color:#ff6961}}
+.spin{display:inline-block;width:12px;height:12px;margin-right:8px;vertical-align:-1px;border:2px solid rgba(120,120,128,.25);border-top-color:var(--acc);border-radius:50%;animation:rot .8s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
 
 /* ---------- 概要 ---------- */
 .hero{
-  margin-top:18px;padding:20px;border-radius:20px;border:1px solid rgba(124,200,255,.28);
-  background:radial-gradient(90% 150% at 100% 0%,rgba(70,160,255,.16),transparent 62%),linear-gradient(150deg,rgba(14,30,50,.9),rgba(26,44,70,.92));
-  box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 1px rgba(220,238,255,.06);
-  display:grid;grid-template-columns:1.35fr .9fr;gap:18px;align-items:end;
+  margin-top:18px;padding:22px 24px;border-radius:var(--r-lg);border:1px solid var(--brd);
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(34px) saturate(190%);backdrop-filter:blur(34px) saturate(190%);
+  box-shadow:var(--shadow),inset 0 1px 0 var(--hi);
+  display:grid;grid-template-columns:1.4fr .9fr;gap:18px;align-items:end;
 }
-.hero .k{font-size:12px;color:#8fb2cf;letter-spacing:.03em;display:flex;align-items:center;gap:7px}
-.hero .k i{font-style:normal;font-size:10px;padding:2px 7px;border-radius:6px;background:rgba(124,200,255,.14);color:#9dd8ff;border:1px solid rgba(124,200,255,.25)}
-.hero .k i.n{background:rgba(140,200,255,.07);color:#a9c2d8;border-color:rgba(140,200,255,.18)}
-.wallet-head .idx{font:700 10.5px/1 var(--mono);color:#8fb6d6;background:rgba(140,200,255,.1);border:1px solid rgba(140,200,255,.18);border-radius:5px;padding:3px 5px}
-.hero .v{margin:6px 0 4px;font:800 clamp(30px,6.6vw,44px)/1.05 var(--mono);letter-spacing:-.5px;color:#eaf4ff;text-shadow:0 0 34px rgba(124,200,255,.28)}
-.hero .v small{font-size:.42em;letter-spacing:0;color:var(--acc);margin-left:6px;font-weight:700}
-.hero .eq{font-size:11.5px;color:#7d94aa}
-.hero-side{display:grid;gap:8px}
-.mini{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 12px;border-radius:11px;background:rgba(34,56,86,.66);border:1px solid rgba(140,200,255,.1)}
-.mini span{font-size:11.5px;color:#89a3bd}
-.mini b{font:700 14px/1 var(--mono);color:#e2f0ff}
-.mini.mute b{color:#a8c2d8;font-weight:600}
-.split{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
-.ent span{min-width:0;overflow-wrap:anywhere}
-.bar{position:relative;padding:10px 12px;border-radius:12px;background:rgba(32,53,82,.62);border:1px solid rgba(140,200,255,.1);overflow:hidden}
-.bar .t{display:flex;justify-content:space-between;font-size:11.5px;color:#8fa9c1;margin-bottom:7px}
-.bar .t b{font-family:var(--mono);color:#d9ecff}
-.bar .track{height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
-.bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(178,140,246,.9),rgba(124,200,255,.9));transition:width .6s cubic-bezier(.2,.7,.3,1)}
+.hero .k{font-size:12px;color:var(--ink-3);letter-spacing:.01em;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.hero .k i{font-style:normal;font-size:10.5px;padding:4px 9px;border-radius:999px;background:rgba(10,132,255,.1);color:var(--acc-2);border:1px solid rgba(10,132,255,.16)}
+.hero .k i.n{background:rgba(120,120,128,.12);color:var(--ink-3);border-color:var(--hair)}
+.hero .v{margin:8px 0 6px;font:700 clamp(33px,6.6vw,46px)/1.02 var(--mono);letter-spacing:-1.6px;color:var(--ink);font-variant-numeric:tabular-nums}
+.hero .v small{font-size:.38em;letter-spacing:0;color:var(--dim);margin-left:8px;font-weight:600;font-family:-apple-system,system-ui,sans-serif}
+.hero .eq{font-size:11.8px;color:var(--dim);letter-spacing:.005em}
+.hero-side{display:grid;gap:9px}
+.mini{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 14px;border-radius:14px;
+  background:var(--glass-3);border:1px solid var(--hair);box-shadow:inset 0 1px 0 var(--hi)}
+.mini span{font-size:11.5px;color:var(--ink-3)}
+.mini b{font:600 14.5px/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.mini.mute b{color:var(--ink-2);font-weight:500}
+.split{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.bar{padding:11px 14px;border-radius:14px;background:var(--glass-3);border:1px solid var(--hair);overflow:hidden}
+.bar .t{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);margin-bottom:8px}
+.bar .t b{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
+.bar .track{height:5px;border-radius:99px;background:rgba(120,120,128,.2);overflow:hidden}
+.bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0a84ff,#5e5ce6);transition:width .7s cubic-bezier(.2,.8,.3,1)}
 
 /* ---------- 钱包 / 链卡 ---------- */
-.wallet{margin-top:18px;display:block}
+.wallet{margin-top:20px;display:block}
 .wallet .wbody{display:none}
 .wallet.open .wbody{display:block}
-.wallet-head{cursor:pointer;user-select:none}
-.wallet-head:focus-visible{outline:2px solid rgba(140,200,255,.5);outline-offset:2px}
-.wallet .chev{width:7px;height:7px;border-right:1.6px solid #86a7c2;border-bottom:1.6px solid #86a7c2;
-  transform:rotate(-45deg);transition:transform .2s;flex:0 0 auto;margin:0 2px 0 1px;position:relative;top:-1px}
-.wallet.open .chev{transform:rotate(45deg);border-color:#a9d6ff}
-.wallet[open] .chev{transform:rotate(45deg)}
-.wallet-head{transition:border-color .2s,background .2s}
-.wallet-head:hover{background:linear-gradient(110deg,rgba(24,42,66,.95),rgba(12,22,36,.95))}
-.wallet-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border-radius:14px;background:linear-gradient(110deg,rgba(34,56,86,.9),rgba(6,12,20,.92));border:1px solid var(--line);margin-bottom:11px}
-.wallet-sum{margin-left:auto;display:flex;align-items:baseline;gap:12px;font-size:12px;color:#93aec5;flex-wrap:wrap;justify-content:flex-end}
-.waddr{font-weight:750;font-size:14px;color:var(--ink);letter-spacing:.2px}
-.wallet-sum b{font:800 16px/1 var(--mono);color:var(--acc-2)}
+/* 钱包行：单行三列表（跨行严格对齐） */
+.wallet-head{
+  cursor:pointer;user-select:none;
+  display:grid;grid-template-columns:18px minmax(0,1fr) auto;
+  align-items:center;column-gap:14px;
+  padding:12px 16px;border-radius:18px;margin-bottom:10px;
+  background:var(--glass-2);border:1px solid var(--brd);
+  -webkit-backdrop-filter:blur(28px) saturate(185%);backdrop-filter:blur(28px) saturate(185%);
+  box-shadow:0 10px 26px rgba(23,43,77,.09),inset 0 1px 0 var(--hi);
+  transition:background .2s,box-shadow .2s,transform .2s;
+}
+.wallet-head:hover{background:var(--glass);box-shadow:0 14px 34px rgba(23,43,77,.13),inset 0 1px 0 var(--hi)}
+.wallet-head:active{transform:scale(.998)}
+.wallet-head:focus-visible{outline:3px solid rgba(10,132,255,.45);outline-offset:2px}
+.wallet.open .wallet-head{background:var(--glass);border-color:rgba(10,132,255,.26)}
+.wallet .chev{width:6.5px;height:6.5px;border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);
+  transform:rotate(-45deg);transition:transform .25s cubic-bezier(.2,.8,.3,1),border-color .2s;
+  justify-self:center;margin:0 0 2px 0}
+.wallet.open .chev{transform:rotate(45deg);border-color:var(--acc)}
+.wleft{display:flex;align-items:center;gap:10px;min-width:0}
+.wallet-head .idx{
+  flex:0 0 auto;font:600 10.5px/1 var(--mono);color:var(--ink-3);letter-spacing:.04em;
+  background:rgba(120,120,128,.12);border:1px solid var(--hair);
+  border-radius:999px;padding:5px 9px;min-width:30px;text-align:center;
+}
+.waddr{font:600 14.5px/1 var(--mono);color:var(--ink);letter-spacing:.02em;
+  padding-bottom:1px;border-bottom:1px dashed transparent;transition:border-color .2s;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-head:hover .waddr{border-bottom-color:var(--hair)}
 
-.grid{display:grid;grid-template-columns:1fr;gap:11px}
+/* 固定列宽 → 每个钱包的同一列在竖直方向完全对齐 */
+.wallet-sum{
+  display:grid;grid-template-columns:150px 150px 150px;
+  align-items:baseline;justify-items:start;column-gap:20px;
+}
+.wallet-sum .stat{display:flex;align-items:baseline;justify-content:flex-start;gap:5px;min-width:0;white-space:nowrap}
+.wallet-sum .stat em{font-style:normal;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);opacity:.85;
+  transform:translateY(-1px);margin-left:-.11em;flex:0 0 auto}
+/* 三列数字统一字体、字号、字距，仅用字重区分合计 */
+.wallet-sum .stat b{font:600 14px/1 var(--mono);color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:-.1px}
+.wallet-sum .stat.total b{font-weight:700;color:var(--ink);letter-spacing:-.1px;
+  display:flex;align-items:baseline;justify-content:flex-start;gap:6px}
+
+
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:880px){.grid{grid-template-columns:1fr 1fr}}
 
-.card{position:relative;padding:16px;border-radius:17px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);box-shadow:0 14px 40px rgba(0,0,0,.32),inset 0 1px rgba(220,238,255,.035)}
-.card:hover{border-color:rgba(124,200,255,.24)}
-.ch{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
-.pill{font:800 10.5px/1 var(--mono);letter-spacing:.06em;padding:5px 9px;border-radius:7px;border:1px solid}
-.pill.poly{color:#cdb9ff;background:rgba(130,71,229,.16);border-color:rgba(178,140,246,.35)}
-.pill.anb{color:#9dd8ff;background:rgba(124,200,255,.12);border-color:rgba(124,200,255,.3)}
-.ch .tot{margin-left:auto;text-align:right;line-height:1.25}
-.ch .tot span{display:block;font-size:10.5px;color:#7d94aa}
-.ch .tot b{font:800 15px/1.2 var(--mono);color:#eaf3ff}
-.ch .tot .parts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px}
-.ch .tot .parts i{display:inline-block;font-style:normal;font-size:10px;line-height:1.5;color:#9db6cd;
-  border:1px solid rgba(140,200,255,.22);border-radius:5px;padding:1px 6px;background:rgba(8,16,28,.55);white-space:nowrap}
-.ch a.verify{flex-basis:100%;font-size:11px;color:#6f93b5;text-decoration:none;margin-top:-2px}
-.ch a.verify:hover{color:var(--acc)}
+.card{
+  position:relative;padding:18px;border-radius:var(--r-lg);border:1px solid var(--brd);
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(30px) saturate(185%);backdrop-filter:blur(30px) saturate(185%);
+  box-shadow:var(--shadow),inset 0 1px 0 var(--hi);
+  transition:box-shadow .25s,transform .25s;
+  display:flex;flex-direction:column;
+}
+.card:hover{box-shadow:0 22px 60px rgba(23,43,77,.18),inset 0 1px 0 var(--hi)}
+.ch{
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  grid-template-areas:"pill tot" "parts parts";
+  align-items:start;column-gap:12px;row-gap:10px;margin-bottom:14px;
+}
+.pill{grid-area:pill;justify-self:start;align-self:center;
+  font:600 10.5px/1 var(--mono);letter-spacing:.06em;padding:6px 10px;border-radius:999px;border:1px solid;text-transform:uppercase}
+.pill.poly{color:#5b3fd6;background:rgba(94,92,230,.12);border-color:rgba(94,92,230,.22)}
+.pill.anb{color:#0066d6;background:rgba(10,132,255,.12);border-color:rgba(10,132,255,.22)}
+@media (prefers-color-scheme: dark){
+  .pill.poly{color:#c7b8ff;background:rgba(94,92,230,.18);border-color:rgba(160,140,255,.28)}
+  .pill.anb{color:#8fd0ff;background:rgba(10,132,255,.18);border-color:rgba(90,200,250,.28)}
+}
+.ch .tot{grid-area:tot;justify-self:end;text-align:right;line-height:1.25}
+.ch .tot>span{display:block;font-size:10.5px;color:var(--dim);letter-spacing:.02em}
+.ch .tot b{font:700 17px/1.25 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.ch .parts{grid-area:parts;display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-width:0}
+.ch .parts i{display:inline-block;font-style:normal;font-size:10px;line-height:1.5;color:var(--ink-3);
+  border:1px solid var(--hair);border-radius:999px;padding:2px 8px;background:var(--glass-3);white-space:nowrap}
 
-.sec{margin-top:16px}
-.sec-h{display:flex;align-items:center;gap:7px;font:700 11px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#7fa0bb;margin-bottom:8px}
-.sec-h .hint{margin-left:auto;font:600 10px/1 var(--mono);letter-spacing:0;text-transform:none;padding:3px 7px;border-radius:6px;background:rgba(124,200,255,.1);color:#9dd8ff}
-.sec-h .hint.off{background:rgba(255,179,122,.1);color:#ffc79a}
+.sec{margin-top:14px;padding:4px 16px 6px;border-radius:16px;
+  background:var(--glass-2);border:1px solid var(--brd);box-shadow:inset 0 1px 0 var(--hi);
+  -webkit-backdrop-filter:blur(24px) saturate(185%);backdrop-filter:blur(24px) saturate(185%)}
+.sec-h{display:flex;align-items:center;gap:8px;font:600 10.5px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:12px 0 4px}
+.sec-h .hint{margin-left:auto;font:600 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:none;padding:4px 8px;border-radius:999px;background:rgba(52,199,89,.12);color:#1a8f3c}
+.sec-h .hint.off{background:rgba(255,159,10,.14);color:#b26a00}
+@media (prefers-color-scheme: dark){
+  .sec-h .hint{color:#5ee07f;background:rgba(52,199,89,.16)}
+  .sec-h .hint.off{color:#ffc46b;background:rgba(255,159,10,.16)}
+}
 
-.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;transition:background .15s;border-radius:10px;background:rgba(34,56,86,.6);border:1px solid rgba(140,200,255,.075);margin-bottom:6px}
-.row:last-child{margin-bottom:0}
-.row:hover{background:rgba(140,200,255,.07)}
-.row .l{font-size:13px;color:#cfe0ef;min-width:0}
-.row .l small{display:block;color:#8ba1b8;font-size:11px;margin-top:2px}
-.row .r{font:600 13px/1.35 var(--mono);color:#eaf4ff;white-space:nowrap;text-align:right}
-.row .r em{font-style:normal;color:#6c8299;font-size:10.5px;margin-left:4px}
-.row.sum{background:rgba(124,200,255,.07);border-color:rgba(124,200,255,.22)}
-.row.sum .l{font-weight:700;color:#eaf4ff}
-.row.sum .r{color:var(--acc);font-weight:800;font-size:14px}
-.row.zero .r{color:#7f95ab}
-.row.zero .l{color:#b9cfe2}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;margin:0;
+  border-bottom:1px solid var(--hair);border-radius:0;background:none;transition:background .15s}
+.row:last-child{border-bottom:0}
+.row:hover{background:rgba(120,120,128,.06)}
+.row .l{font-size:13.2px;color:var(--ink-2);min-width:0;font-weight:400}
+.row .l small{display:block;color:var(--dim);font-size:11px;margin-top:3px;line-height:1.5;font-weight:400}
+.row .r{font:600 13.5px/1.35 var(--mono);color:var(--ink);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.row .r em{font-style:normal;color:var(--dim);font-size:10.5px;margin-left:5px;font-family:-apple-system,system-ui,sans-serif;font-weight:500}
+.row.sum .l{font-weight:600;color:var(--ink)}
+.row.sum .r{color:var(--acc-2);font-weight:700;font-size:14.5px}
+@media (prefers-color-scheme: dark){.row.sum .r{color:#5ac8fa}}
+.row.zero .r{color:var(--dim)}
+.row.zero .l{color:var(--ink-3)}
 
-
-details{margin-top:6px;border-radius:12px;background:rgba(32,53,82,.52);border:1px solid rgba(140,200,255,.09)}
-details>summary{list-style:none;cursor:pointer;padding:9px 12px;transition:background .15s;font-size:12.5px;color:#b7d3e6;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(124,200,255,.07),transparent 70%);border-radius:11px}
-details[open]>summary{border-bottom:1px solid rgba(140,200,255,.1);border-radius:11px 11px 0 0}
+details{margin-top:8px;border-radius:16px;overflow:hidden;
+  background:var(--glass-2);border:1px solid var(--brd);box-shadow:inset 0 1px 0 var(--hi);
+  -webkit-backdrop-filter:blur(24px) saturate(185%);backdrop-filter:blur(24px) saturate(185%)}
+details>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 13px;
+  font-size:12.5px;font-weight:600;color:var(--ink-2);transition:background .18s;min-height:0;line-height:1.4}
+details>summary:hover{background:rgba(120,120,128,.06)}
 details>summary::-webkit-details-marker{display:none}
-details>summary:before{content:"▸";color:#7cc8ff;font-size:10px;transition:transform .18s}
-details[open]>summary:before{transform:rotate(90deg)}
-details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
-.dbody{padding:0 12px 12px}
-.lock{padding:10px 0;border-top:1px dashed rgba(140,200,255,.12)}
-.lock:first-child{border-top:0;padding-top:0}
-.lock-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:12.5px;color:#dceaf9;margin-bottom:6px}
-.lock-h .m{font:600 12px var(--mono);color:#a9d6f5;white-space:nowrap}
-.ent{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;color:#93aac2;padding:4px 0 4px 9px;border-left:2px solid rgba(124,200,255,.18)}
-.ent b{font-family:var(--mono);color:#cfe4f2;font-weight:600}
-.ent .rr{text-align:right;white-space:nowrap}
-.ent .rr b{color:#ffc79a}
+details[open]>summary{border-bottom:1px solid var(--hair);color:var(--ink)}
+details>summary .m{margin-left:auto;font:600 11.5px var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+/* 折叠箭头与钱包行一致：放在最左侧 */
+details>summary::before{content:"";width:6px;height:6px;flex:0 0 auto;
+  margin:0 5px 1px 1px;
+  border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);
+  transform:rotate(-45deg);transition:transform .25s cubic-bezier(.2,.8,.3,1),border-color .2s}
+details[open]>summary::before{transform:rotate(45deg);border-color:var(--acc)}
+details>summary::after{content:none}
+.dbody{padding:4px 13px 12px}
+.lock{padding:12px 0;border-top:1px solid var(--hair)}
+.lock:first-child{border-top:0;padding-top:2px}
+.lock-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:12.8px;color:var(--ink-2);margin-bottom:6px;font-weight:500}
+.lock-h .m{font:500 12px var(--mono);color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ent{display:flex;justify-content:space-between;gap:10px;font-size:11.8px;color:var(--ink-3);padding:6px 0;border-left:0}
+.ent b{font-family:var(--mono);color:var(--ink-2);font-weight:600;font-variant-numeric:tabular-nums}
+.ent .rr{text-align:right;white-space:nowrap;color:var(--dim)}
+.ent .rr b{color:var(--ink-2)}
+.ent .when{color:var(--dim)}
+.ent.muted{color:var(--dim)}
+.ent.sub{opacity:.92}
 
+.errbox{margin-top:12px;padding:11px 13px;border-radius:12px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:#c40015;font-size:11.5px;line-height:1.65}
+@media (prefers-color-scheme: dark){.errbox{color:#ff8f87;background:rgba(255,69,58,.12)}}
 
-.note{color:#7d94aa;font-size:11.5px;line-height:1.7;margin-top:12px}
-.note b{color:#b6cfe0}
-.errbox{margin-top:12px;padding:9px 12px;border-radius:10px;background:rgba(255,143,128,.08);border:1px solid rgba(255,143,128,.25);color:#ffb3a7;font-size:11.5px;line-height:1.6}
-
-.skel{display:grid;gap:11px;margin-top:18px}
-.sk-card{padding:18px;border-radius:17px;border:1px solid var(--line);background:var(--panel)}
-.sk-line{height:12px;border-radius:6px;margin-bottom:10px;background:linear-gradient(90deg,rgba(140,200,255,.08),rgba(140,200,255,.2),rgba(140,200,255,.08));background-size:220% 100%;animation:sk 1.3s ease-in-out infinite}
+.skel{display:grid;gap:12px;margin-top:20px}
+.sk-card{padding:20px;border-radius:var(--r-lg);border:1px solid var(--brd);background:var(--glass-2);box-shadow:inset 0 1px 0 var(--hi)}
+.sk-line{height:12px;border-radius:6px;margin-bottom:11px;background:linear-gradient(90deg,rgba(120,120,128,.1),rgba(120,120,128,.22),rgba(120,120,128,.1));background-size:220% 100%;animation:sk 1.5s ease-in-out infinite}
 .sk-line:last-child{margin-bottom:0}
-.sk-big{height:30px;width:46%;border-radius:8px;margin-bottom:14px}
+.sk-big{height:30px;width:46%;border-radius:8px;margin-bottom:16px}
 .w30{width:30%}.w50{width:50%}.w70{width:70%}.w90{width:90%}
 @keyframes sk{0%{background-position:120% 0}100%{background-position:-120% 0}}
-.fade{animation:fade .35s ease both}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.empty{margin-top:20px;padding:34px 18px;text-align:center;color:#6c8299;font-size:13px;line-height:1.9;border:1px dashed rgba(140,200,255,.16);border-radius:16px}
-.foot{margin-top:26px;text-align:center;color:#5c7186;font-size:11.5px;line-height:1.9;overflow-wrap:anywhere}
-.foot a{color:#6f93b5}
+.fade{animation:fade .4s cubic-bezier(.2,.8,.3,1) both}
+@keyframes fade{from{opacity:0;transform:translateY(8px) scale(.995)}to{opacity:1;transform:none}}
+.empty{margin-top:22px;padding:40px 20px;text-align:center;color:var(--dim);font-size:13px;line-height:1.9;
+  border:1px dashed var(--hair);border-radius:var(--r-md);background:var(--glass-3)}
+::selection{background:rgba(10,132,255,.22)}
+.foot{margin-top:26px;text-align:center;color:var(--dim);font-size:11px;line-height:1.9;letter-spacing:.01em;overflow-wrap:anywhere}
 
-@media(max-width:720px){
-  .hero{grid-template-columns:1fr;gap:14px}
-  .hero .v{font-size:clamp(30px,9vw,40px)}
-  .split{grid-template-columns:1fr}
-  .wallet-sum{margin-left:0;width:100%}
-  .row .r{font-size:12.5px}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .qcard,.hero,.card,.sec,details,.wallet-head,.mini,.bar,.btn.ghost,.topbar,.empty{background:#fff}
+  @media (prefers-color-scheme: dark){
+    .qcard,.hero,.card,.sec,details,.wallet-head,.mini,.bar,.btn.ghost,.topbar,.empty{background:#15161a}
+  }
 }
+
+@media(max-width:480px){
+  .wallet-sum .stat.total b{font-size:12px}
+}
+@media(max-width:720px){
+  .hero{grid-template-columns:1fr;gap:16px}
+  .hero .v{font-size:clamp(32px,9.4vw,42px)}
+  .split{grid-template-columns:1fr}
+  .wallet-head{grid-template-columns:18px minmax(0,1fr);row-gap:12px;padding:14px 16px}
+  .wallet-sum{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px;
+    padding-top:12px;border-top:1px solid var(--hair)}
+  .wallet-sum{column-gap:12px;row-gap:2px}
+  /* 窄屏：标签置顶、数值在下，三列等宽，不挤在一起 */
+  .wallet-sum .stat{flex-direction:column;align-items:flex-start;gap:3px}
+  .wallet-sum .stat em{font-size:8px;letter-spacing:.06em;width:auto;min-width:0;flex:0 0 auto}
+  .wallet-sum .stat b,.wallet-sum .stat.total b{font-size:12.5px;letter-spacing:0}
+  .topbar{padding:10px 12px;flex-wrap:wrap}
+  .status{white-space:normal}
+  .row .r{font-size:12.8px}
+  .ch{grid-template-columns:1fr;grid-template-areas:"pill" "tot" "parts";row-gap:8px}
+  .ch .tot{justify-self:start;text-align:left}
+}
+
+.qcard::before,.hero::before,.card::before,.wallet-head::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,var(--sheen),transparent 38%);
+  opacity:.55;mix-blend-mode:screen;
+}
+.qcard,.hero,.card,.wallet-head{isolation:isolate}
+.qcard>*,.hero>*,.card>*,.wallet-head>*{position:relative;z-index:1}
+.btn:focus-visible,.btn.ghost:focus-visible{outline:3px solid rgba(10,132,255,.45);outline-offset:2px}
+
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
 <div class="shell">
-  <div class="eyebrow"><span class="dot"></span><span>ORIGIN · DUAL-CHAIN HOLDINGS</span><span class="tag">READ ONLY</span></div>
-  <h1>双链 <em>LGNS 总币量</em></h1>
-  <p class="lede">
-    汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的 LGNS：钱包余额、活期 sLGNS、预热质押期、长期质押现值，
-    Polygon 的 <b>能量额度质押 360</b> 与 <b>A Stake</b> 系列，Anubis 的 <b>即时质押 / 债券质押 / 能量点数</b>，以及 ILO 页里的 <b>创世 360</b>，
-    以及 <b>债券</b>应收 LGNS 与<b>涡轮、蜘蛛网、DAO</b> 等独立奖励待领。
-    长期质押现值按 gons 实时折算、<b>已含锁仓内产生的收益</b>，这部分不再重复叠加。
-    Anubis <b>ILO</b> 按官网 <b>/ilo</b> 页整组展示：创世 360 计入总量，ILO(LGNS) / ILO(DAI) 属申购额度、不计入。Polygon 端没有 ILO 产品。
-    纯链上只读，不签名、不发送交易。
-  </p>
+  <h1>双链 <em>LGNS 总币量查询</em></h1>
+  <div class="topbar">
+    <span class="dot" aria-hidden="true"></span>
+    <p class="sub">Polygon + Anubis 全口径 <b>LGNS</b>：钱包 · sLGNS · 预热 · 质押现值 · 债券 · 奖励</p>
+    <div class="status" id="status"></div>
+  </div>
 
   <div class="qcard">
     <label for="addr" style="position:absolute;left:-9999px">钱包地址</label>
@@ -235,16 +371,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     </div>
   </div>
 
-  <div class="status" id="status"></div>
   <div id="out"></div>
   <div class="empty" id="empty">输入钱包地址开始查询 · 支持多钱包同时汇总</div>
 
-  <div class="foot">
-    数据源：Polygon / Anubis 链上合约（eth_call，分批读取）· 只读查询 · 不需要连接钱包<br>
-    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 预热质押期 + 质押现值（长期质押 gons 折算已含收益 + 能量额度/A Stake/即时/债券/能量点数）+ 债券应收 LGNS + 涡轮/蜘蛛网/DAO 待领<br>
-    不计入：Anubis ILO(LGNS) / ILO(DAI) 申购额度、Polygon 端无 ILO 产品、钱包内 DAI / USDT / WBTC / wETH / OUSD(A) / LP / GLGNS 等非 LGNS 资产<br>
-    合约清单对齐官网：Polygon 长期质押 60/120/240/360/360-V2/600 天、能量额度质押 360、A Stake 120/240/360/360-LGNS、17 类债券、3 个奖励合约；Anubis 长期质押 360/600、即时质押、债券质押、能量点数、ILO 页（创世 360 + ILO(LGNS) + ILO(DAI)）、销毁债券 2 类、3 个奖励合约；NFT、彩票、治理类不产生 LGNS 余额，未计入数量统计
-  </div>
+  <div class="foot">数据源：Polygon / Anubis 链上合约（eth_call，分批读取）· 只读查询 · 不需要连接钱包</div>
 </div>
 
 <script>
@@ -282,7 +412,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     polygon: {
       key: 'polygon', name: 'Polygon', cls: 'poly',
       rpcs: ['https://polygon-bor-rpc.publicnode.com', 'https://polygon.drpc.org', 'https://polygon-rpc.com'],
-      explorer: 'https://polygonscan.com/address/',
       lgns: '0xeB51D9A39AD5EEF215dC0Bf39a8821ff804A0F01',
       slgns: '0x99a57E6C8558BC6689f894e068733ADf83C19725',
       staking: '0x1964Ca90474b11FFD08af387b110ba6C96251Bfc',
@@ -345,7 +474,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     anubis: {
       key: 'anubis', name: 'Anubis', cls: 'anb',
       rpcs: ['https://rpc2.anubispace.org', 'https://rpc.anubispace.org'],
-      explorer: 'https://browser.anubispace.org/address/',
       lgns: '0x4D1D808a081FdAc440703b3765FC61f8028C06B8',
       slgns: '0x2243aE29F73137d678197b61B0621AE942845B8C',
       staking: '0x7a2E3fA6eA60437F0441b8eb5e60674B80339228',
@@ -962,15 +1090,19 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
     var h = '<section class="card">';
 
-    /* 头部 */
-    h += '<div class="ch"><span class="pill ' + cfg.cls + '">' + cfg.name + '</span>' +
-      '<div class="tot"><span>本链总币量</span><b>' + fmt2(total, 9) + '</b>' +
-      '<span class="parts"><i>持仓 ' + fmt(hold, 9) + '</i>' +
-      (gold > 0n ? '<i>债券 ' + fmt(gold, 9) + '</i>' : '') +
-      c.rewards.filter(function (r) { return r.raw > 0n; })
-        .map(function (r) { return '<i>' + esc(r.short || r.label) + ' ' + fmt(r.raw, 9) + '</i>'; }).join('') +
-      '</span></div>' +
-      '<a class="verify" href="' + cfg.explorer + wallet + '" target="_blank" rel="noopener">链上验证 ↗ ' + esc(short(wallet)) + '</a></div>';
+    /* 头部：构成标签最多 4 个，其余折叠成 +N */
+    var chips = ['<i>持仓 ' + fmt(hold, 9) + '</i>'];
+    if (gold > 0n) chips.push('<i>债券 ' + fmt(gold, 9) + '</i>');
+    c.rewards.filter(function (r) { return r.raw > 0n; })
+      .forEach(function (r) { chips.push('<i>' + esc(r.short || r.label) + ' ' + fmt(r.raw, 9) + '</i>'); });
+    var chipHtml = chips.slice(0, 4).join('') +
+      (chips.length > 4 ? '<i>+' + (chips.length - 4) + '</i>' : '');
+
+    h += '<div class="ch">' +
+      '<span class="pill ' + cfg.cls + '">' + cfg.name + '</span>' +
+      '<div class="tot"><span>本链总币量</span><b>' + fmt2(total, 9) + '</b></div>' +
+      '<span class="parts">' + chipHtml + '</span>' +
+      '</div>';
 
     /* 持仓构成 */
     h += '<div class="sec"><div class="sec-h">持仓构成 <span class="hint">计入</span></div>';
@@ -1016,18 +1148,16 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
             var gain = pres === null ? null : (pres - (it.principal || 0n));
             h += '<div class="ent"><span>#' + (o.i + 1) + ' 本金 <b>' + fmt(it.principal, 9) + '</b> ' +
               (pres !== null ? '· 现值 <b>' + fmt(pres, 9) + '</b> ' : '') +
-              (when ? '<span style="color:#8aa3ba"> · ' + when + '</span>' : '') + '</span>' +
+              (when ? '<span class="when"> · ' + when + '</span>' : '') + '</span>' +
               '<span class="rr">已计息 <b>' + fmt(gain, 9) + '</b></span></div>';
           });
           if (closed) {
-            h += '<div class="ent" style="border-left-color:rgba(140,200,255,.10);color:#7e94a9">' +
+            h += '<div class="ent muted">' +
               '另有 ' + closed + ' 笔历史记录已结清（本金 0），不计入</div>';
           }
         }
         h += '</div>';
       });
-      h += '<div class="note" style="margin:6px 0 0">锁仓现值按 gons 实时折算：本金锁仓后 gons 会随收益增长，' +
-        '所以「现值」本身已包含锁仓产生的收益。领取会减少 gons，现值随之下降，因此不再重复叠加「未领收益」。</div>';
       h += '</div></details>';
     }
 
@@ -1041,12 +1171,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
           sub: o.note || 'getDepositorBalance 现值'
         });
       });
-      h += '<div class="note" style="margin:6px 0 0">' + (cfg.key === 'polygon'
-        ? '这组产品都属于「质押 LGNS 类」仓位：<b>能量额度质押</b>用 LGNS 换能量额度（额度再用于铸造 A），<b>A Stake</b> 里 120/240/360 天用 DAI 申购、'
-          + '360 天那档直接用 LGNS，合约内部以 LGNS（gons）记账，所以按 getDepositorBalance 的 LGNS 现值计入总量。'
-        : 'Anubis 的即时质押、债券质押、能量点数都在官网「我的仓位」里以 getDepositorBalance 计价，单位与 LGNS 一致，因此计入总量；'
-          + '<b>创世 360</b> 按官网位于 ILO 页，已移到下方 ILO 分组里单列（同样计入）。') +
-        '</div>';
       h += '</div></details>';
     }
 
@@ -1054,10 +1178,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     if (cfg.ilo && c.ilo) {
       var ilo = c.ilo;
       var hasAny = (ilo.count || 0) > 0 || ilo.idoDai > 0n || (ilo.discount || 0n) > 0n;
-      h += '<details><summary>ILO（Anubis · 创世 360 计入 / 申购不计入） <span class="m">' +
+      h += '<details><summary>ILO（Anubis） <span class="m">' +
         (hasAny
           ? ((ilo.discount || 0n) > 0n ? '创世 ' + fmt(ilo.discount, 9) : '无创世仓位') +
-            ' · ' + (ilo.count || 0) + ' 笔 LGNS 申购' + (ilo.idoDai > 0n ? ' · DAI 已申购' : '')
+            ((ilo.count || 0) > 0 ? ' · ' + ilo.count + ' 笔' : '') + (ilo.idoDai > 0n ? ' · 含 DAI' : '')
           : '无记录') +
         '</span></summary><div class="dbody">';
       h += row('创世 360（Discount Staking）', fmt(ilo.discount, 9), 'LGNS', {
@@ -1075,9 +1199,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
           'LGNS <b>' + fmt(rec.lgns, 9) + '</b>' + (rec.dai > 0n ? ' · DAI <b>' + fmt(rec.dai, 18) + '</b>' : '') +
           '</span><span class="rr">奖励 <b>' + fmt(rec.reward, 9) + '</b></span></div>';
       });
-      h += '<div class="note" style="margin:6px 0 0">官网 <b>/ilo</b> 页面由三块组成：<b>创世 360</b>（Discount Staking，DAI 折价申购 LGNS）+ <b>ILO(LGNS)</b> + <b>ILO(DAI)</b>。' +
-        '其中创世 360 是 LGNS 计价仓位，按 getDepositorBalance 现值<b>计入</b>本链总币量；两个 ILO 是<b>申购额度</b>，只展示、不计入。' +
-        'Polygon 端没有 ILO（也没有创世 360）。</div>';
       h += '</div></details>';
     }
 
@@ -1087,12 +1208,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       h += '<details><summary>债券（计入） <span class="m">' +
         (heldBonds.length ? fmt(gold, 9) + ' LGNS' : c.bonds.length + ' 类 · 无持仓') + '</span></summary><div class="dbody">';
       if (!heldBonds.length) {
-        h += '<div class="ent" style="border-left-color:rgba(140,200,255,.12)"><span>已核对 ' + c.bonds.length +
-          ' 类债券合约（' + cfg.name + ' 端：' +
-          (cfg.key === 'polygon'
-            ? 'DAI 30/60/120/240/360/600 天、DAI 固定期、USDT、WBTC、wETH、LP 30/60/120/240/360/600 天 + LP'
-            : '销毁债券、固定价销毁债券') +
-          '），当前无存入。</span></div>';
+        h += '<div class="ent muted"><span>当前无存入</span></div>';
       }
       heldBonds.forEach(function (b) {
         h += '<div class="lock"><div class="lock-h"><span>' + esc(b.label) + '</span>' +
@@ -1106,14 +1222,12 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         b.deposits.forEach(function (d, i) {
           if (!d) return;
           var owed = (d.owed !== undefined && d.owed !== null) ? d.owed : (d.claimable || 0n);
-          h += '<div class="ent" style="border-left-color:rgba(140,200,255,.08)"><span>#' + (i + 1) +
+          h += '<div class="ent sub"><span>#' + (i + 1) +
             ' 存入 ' + (b.abi === 'burn' ? fmt(d.principal, 9) + ' LGNS' : fmt(d.payout, 9) + ' LGNS') +
             '</span><span class="rr">应付 <b>' + fmt(owed, 9) + '</b></span></div>';
         });
         h += '</div>';
       });
-      h += '<div class="note" style="margin:6px 0 0">债券（DAI 本位 / 固定价值）支付的 LGNS 与钱包持仓相互独立，' +
-        '领取不会减少任何持仓，因此计入总币量；销毁债券按 getClaimable 的应付 LGNS 计，本金只作展示，避免重复相加。</div>';
       h += '</div></details>';
     }
 
@@ -1132,8 +1246,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
             : '未领取 = 累计 ' + exact(r.total, 9) + ' − 已领 ' + exact(r.claimed, 9)
         });
       });
-      h += '<div class="note" style="margin:6px 0 0">这些奖励在独立合约里累积，领取只进钱包、不会减少任何持仓，' +
-        '所以直接计入总币量。</div>';
       h += '</div></details>';
     }
 
@@ -1142,8 +1254,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       h += '<details><summary>长期质押已计息（仅参考，不叠加） <span class="m">' + fmt(lockAccrued(c), 9) + '</span></summary><div class="dbody">';
       h += row('逐笔现值 − 本金 合计', fmt(lockAccrued(c), 9), 'LGNS',
         { sub: '已折算进上方「长期质押现值」，再相加会重复' });
-      h += '<div class="note" style="margin:6px 0 0">锁仓按 gons 计息，收益实时长进 gons，领取会减少 gons、现值随之下降。' +
-        '因此这部分只作参考，不再加到总币量里。</div>';
       h += '</div></details>';
     }
 
@@ -1154,15 +1264,8 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     (nz.length ? nz : c.extras).forEach(function (x) {
       h += row(esc(x.label), fmt(x.raw, x.dec), esc(x.sym), { zero: x.raw === 0n });
     });
-    if (nz.length) h += '<div class="note">另有 ' + (c.extras.length - nz.length) + ' 种已核对的代币余额为 0（' +
-      (cfg.key === 'polygon' ? 'DAI / USDT / WBTC / wETH / OUSD(A) / LP' : 'DAI / GLGNS') +
-      '），非 LGNS 资产不计入总量。</div>';
     h += '</div></details>';
 
-    var checked = 3 + cfg.longLocks.length + cfg.pools.length + cfg.bonds.length + cfg.rewards.length + cfg.extras.length + (cfg.ilo ? 3 : 0);
-    var readable = 3 + c.locks.length + c.pools.length + c.bonds.length + c.rewards.length + c.extras.length + (cfg.ilo ? 3 : 0);
-    h += '<div class="note">已核对 ' + cfg.name + ' 上 ' + checked + ' 个合约接口（含 0 余额项），可读 ' + readable +
-      ' 个；不可读的通常已下线或接口变更，不会计入总量。</div>';
     if (c.errors.length) h += '<div class="errbox">' + esc(c.errors.join('；')) + '</div>';
     h += '</section>';
     return h;
@@ -1175,10 +1278,15 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     var h = '<div class="wallet' + (open ? ' open' : '') + '" id="w' + ((idx || 0) + 1) + '">';
     h += '<div class="wallet-head" role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '">' +
       '<span class="chev" aria-hidden="true"></span>' +
+      '<span class="wleft">' +
       ((total2 > 1) ? '<span class="idx">#' + ((idx || 0) + 1) + '</span>' : '') +
       '<span class="waddr" title="' + esc(w.address) + '">' + esc(short(w.address)) + '</span>' +
-      '<span class="wallet-sum"><span>Polygon ' + fmt(tp, 9) + '</span>' +
-      '<span>Anubis ' + fmt(ta, 9) + '</span><b>' + fmt2(tp + ta, 9) + ' LGNS</b></span></div>';
+      '</span>' +
+      '<span class="wallet-sum">' +
+        '<span class="stat"><em>Polygon</em><b>' + fmt(tp, 9) + '</b></span>' +
+        '<span class="stat"><em>Anubis</em><b>' + fmt(ta, 9) + '</b></span>' +
+        '<span class="stat total"><em>TOTAL</em><b>' + fmt2(tp + ta, 9) + '</b></span>' +
+      '</span></div>';
     h += '<div class="wbody"><div class="grid">' + chainCard(p, w.address) + chainCard(a, w.address) + '</div></div>';
     h += '</div>';
     return h;
