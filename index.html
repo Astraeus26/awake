@@ -108,7 +108,7 @@ h1 em{font-style:normal}
 .wbody{display:none}
 .wallet.open .wbody{display:block}
 .wallet-head{cursor:pointer;user-select:none;
-  display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:14px;
+  display:grid;grid-template-columns:16px minmax(0,1fr) minmax(0,3fr);align-items:center;gap:14px;
   padding:12px 16px;transition:background .2s,border-color .2s,box-shadow .2s}
 .chev{width:7px;height:7px;justify-self:center;margin-bottom:2px;
   border-right:1.6px solid var(--dim);border-bottom:1.6px solid var(--dim);
@@ -119,11 +119,13 @@ h1 em{font-style:normal}
   font:600 10px/1 var(--mono);letter-spacing:.06em;color:var(--dim);
   border:1px solid var(--line-2);background:var(--chip)}
 .waddr{font:600 14px/1.2 var(--mono);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wallet-sum{display:grid;grid-template-columns:repeat(3,minmax(96px,auto));gap:clamp(12px,2.4vw,26px)}
-.wallet-sum .stat{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
-.wallet-sum em{font-style:normal;font:600 8.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-.wallet-sum b{font:600 13.5px/1 var(--mono);color:var(--tx-2);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.wallet-sum .total b{font-weight:750;color:var(--tx);font-size:14.5px}
+/* 三列等宽轨道 + 地址占等宽首列：四块内容按同一节奏平均分布 */
+.wallet-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:baseline;justify-items:start;column-gap:clamp(8px,1.4vw,18px);width:100%}
+.wallet-sum .stat{display:flex;align-items:baseline;gap:9px;min-width:0;white-space:nowrap}
+.wallet-sum em{flex:0 0 auto;font-style:normal;font:600 8.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.wallet-sum b{font:600 14px/1 var(--mono);color:var(--tx-2);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.wallet-sum .total b{font-weight:750;color:var(--tx);font-size:14px}
 .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
 @media(min-width:920px){.grid{grid-template-columns:1fr 1fr}}
 
@@ -176,13 +178,17 @@ details>summary .m{margin-left:auto;font:500 10.5px/1.3 var(--mono);color:var(--
 .lock:first-child{border-top:0;padding-top:2px}
 .lock-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px;font-size:12px;color:var(--tx-2)}
 .lock-h .m{font:500 10.5px/1.4 var(--mono);color:var(--dim);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
-.ent{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:11px;color:var(--dim);line-height:1.55}
+.ent{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:12px;
+  padding:5px 0;font-size:11px;color:var(--dim);line-height:1.55}
 .ent b{font-family:var(--mono);font-weight:600;color:var(--tx-2);font-variant-numeric:tabular-nums}
-.ent .rr{text-align:right;white-space:nowrap;color:var(--dim)}
-.ent .rr b{color:var(--tx-2)}
+/* 右侧读数栏：标签成列 + 数字定宽右对齐 → 每行的“应付/可领”与数值都落在同一条竖线上 */
+.ent .rr{display:inline-flex;align-items:baseline;justify-content:flex-end;gap:8px;
+  text-align:right;white-space:nowrap;color:var(--dim)}
+.ent .rr i{font-style:normal;flex:0 0 auto}
+.ent .rr b{flex:0 0 auto;min-width:7.8em;text-align:right;color:var(--tx-2)}
 .ent .when{color:var(--faint)}
 .ent.muted{color:var(--faint)}
-.ent.sub{opacity:.92}
+.ent-sub{opacity:.92}
 .errbox{margin-top:10px;padding:9px 11px;border-radius:var(--r-sm);font-size:10.5px;line-height:1.7;
   color:var(--warn);background:var(--warn-bg);border:1px solid var(--warn-brd)}
 
@@ -1232,7 +1238,7 @@ details>summary .m{color:var(--dim)}
             h += '<div class="ent"><span>#' + (o.i + 1) + ' 本金 <b>' + fmt(it.principal, 9) + '</b> ' +
               (pres !== null ? '· 现值 <b>' + fmt(pres, 9) + '</b> ' : '') +
               (when ? '<span class="when"> · ' + when + '</span>' : '') + '</span>' +
-              '<span class="rr">已计息 <b>' + fmt(gain, 9) + '</b></span></div>';
+              '<span class="rr"><i>已计息</i><b>' + fmt(gain, 9) + '</b></span></div>';
           });
           if (closed) {
             h += '<div class="ent muted">' +
@@ -1276,7 +1282,7 @@ details>summary .m{color:var(--dim)}
         var when = rec.ts ? new Date(Number(rec.ts) * 1000).toISOString().slice(0, 10) : '';
         h += '<div class="ent"><span>#' + (i + 1) + ' ' + (when ? when + ' · ' : '') +
           'LGNS <b>' + fmt(rec.lgns, 9) + '</b>' + (rec.dai > 0n ? ' · DAI <b>' + fmt(rec.dai, 18) + '</b>' : '') +
-          '</span><span class="rr">奖励 <b>' + fmt(rec.reward, 9) + '</b></span></div>';
+          '</span><span class="rr"><i>奖励</i><b>' + fmt(rec.reward, 9) + '</b></span></div>';
       });
       h += '</div></details>';
     }
@@ -1291,19 +1297,19 @@ details>summary .m{color:var(--dim)}
       }
       heldBonds.forEach(function (b) {
         h += '<div class="lock"><div class="lock-h"><span>' + esc(b.label) + '</span>' +
-          '<span class="m">' + b.count + ' 笔 · 应付 ' + fmt(b.payable, 9) + ' LGNS</span></div>';
+          '<span class="m">' + b.count + ' 笔 · 应付 ' + fmt(b.payable, 9) + '</span></div>';
         if (b.principal > 0n) {
           h += '<div class="ent"><span>存入本金 <b>' + (b.abi === 'burn'
             ? fmt(b.principal, 9) + ' LGNS（已销毁）'
             : fmt(b.principal, b.dec) + ' ' + esc(b.sym)) + '</b></span>' +
-            '<span class="rr">可领 <b>' + fmt(b.claimable, 9) + '</b> LGNS</span></div>';
+            '<span class="rr"><i>可领</i><b>' + fmt(b.claimable, 9) + '</b></span></div>';
         }
         b.deposits.forEach(function (d, i) {
           if (!d) return;
           var owed = (d.owed !== undefined && d.owed !== null) ? d.owed : (d.claimable || 0n);
-          h += '<div class="ent sub"><span>#' + (i + 1) +
+          h += '<div class="ent ent-sub"><span>#' + (i + 1) +
             ' 存入 ' + (b.abi === 'burn' ? fmt(d.principal, 9) + ' LGNS' : fmt(d.payout, 9) + ' LGNS') +
-            '</span><span class="rr">应付 <b>' + fmt(owed, 9) + '</b></span></div>';
+            '</span><span class="rr"><i>应付</i><b>' + fmt(owed, 9) + '</b></span></div>';
         });
         h += '</div>';
       });
