@@ -426,16 +426,11 @@ details>summary::after{content:none}
       ],
       // 其他 LGNS 计价质押（官网「A Stake」页与能量额度体系，均为 getDepositorBalance 现值）
       pools: [
-        { label: '能量额度质押 · 360 天', addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07',
-          note: '质押 LGNS 换能量额度（额度用于铸造 A），质押不等于销毁' },
-        { label: 'A Stake · 120 天', addr: '0x33b69112FFF18eeA99834ACa7Db4021BebC1E084',
-          note: 'DAI 申购，按 LGNS 现值计价，收益以 A（隐私稳定币）结算' },
-        { label: 'A Stake · 240 天', addr: '0x65Ed60E414CEcE532d8afF90c89dA369E44CF883',
-          note: 'DAI 申购，按 LGNS 现值计价，收益以 A（隐私稳定币）结算' },
-        { label: 'A Stake · 360 天', addr: '0xDa13C7553A654601667adf9a1A16248bAB584F13',
-          note: 'DAI 申购，按 LGNS 现值计价，收益以 A（隐私稳定币）结算' },
-        { label: 'A Stake · 360 天（LGNS）', addr: '0x23E2B07d85a8dbc307742C72aadbbdde4E5e2EFB',
-          note: '直接以 LGNS 申购，按 LGNS 现值计价' }
+        { label: '能量额度质押 · 360 天', addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07' },
+        { label: 'A Stake · 120 天', addr: '0x33b69112FFF18eeA99834ACa7Db4021BebC1E084' },
+        { label: 'A Stake · 240 天', addr: '0x65Ed60E414CEcE532d8afF90c89dA369E44CF883' },
+        { label: 'A Stake · 360 天', addr: '0xDa13C7553A654601667adf9a1A16248bAB584F13' },
+        { label: 'A Stake · 360 天（LGNS）', addr: '0x23E2B07d85a8dbc307742C72aadbbdde4E5e2EFB' }
       ],
       bonds: [
         { label: 'DAI 债券 · 30 天',  addr: '0x152Ed4367ae89FBB37055780dB228dc178cB4330', sym: 'DAI',  dec: 18 },
@@ -482,12 +477,9 @@ details>summary::after{content:none}
         { label: '长期质押 · 600 天', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
       ],
       pools: [
-        { label: '即时质押（Instant Staking）', addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824',
-          note: '官网「我的仓位」中以 getDepositorBalance 计' },
-        { label: '债券质押（Bond Staking）', addr: '0xF190Ab12B73BFE1B626379aF96e8f1859ec91F20',
-          note: '质押 LGNS 获取债券额度' },
-        { label: '能量点数（Activity Point）', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E',
-          note: '官网中文名「能量点数」，不是「能量质押」' }
+        { label: '即时质押（Instant Staking）', addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824' },
+        { label: '债券质押（Bond Staking）', addr: '0xF190Ab12B73BFE1B626379aF96e8f1859ec91F20' },
+        { label: '能量点数（Activity Point）', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E' }
       ],
       // Anubis 的 ILO 页（/ilo）包含三块：创世 360（Discount Staking）、ILO(LGNS)、ILO(DAI)
       // 创世 360 是 LGNS 计价仓位（计入）；两个 ILO 是申购额度（仅展示、不计入）
@@ -811,8 +803,7 @@ details>summary::after{content:none}
       var ot = big('poolTotal' + j);
       if (ot === null) { res.errors.push(cfg.pools[j].label + ' 读取失败（接口变更或已下线）'); continue; }
       res.pools.push({
-        label: cfg.pools[j].label, addr: cfg.pools[j].addr,
-        note: cfg.pools[j].note || '', present: ot
+        label: cfg.pools[j].label, addr: cfg.pools[j].addr, present: ot
       });
     }
 
@@ -1107,19 +1098,15 @@ details>summary::after{content:none}
     /* 持仓构成 */
     h += '<div class="sec"><div class="sec-h">持仓构成 <span class="hint">计入</span></div>';
     h += row('钱包内自由持有', fmt(c.lgns ? c.lgns.raw : null, 9), 'LGNS',
-      { zero: c.lgns && c.lgns.raw === 0n, sub: '链上 ERC-20 余额' });
+      { zero: c.lgns && c.lgns.raw === 0n });
     h += row('活期质押 sLGNS', fmt(c.flex ? c.flex.raw : null, 9), 'LGNS',
-      { zero: c.flex && c.flex.raw === 0n, sub: '随 rebase 增长，1:1 计 LGNS' });
+      { zero: c.flex && c.flex.raw === 0n });
     h += row('预热质押期', fmt(c.warmup ? c.warmup.raw : null, 9), 'LGNS',
-      { sub: '已质押、尚未转为 sLGNS', zero: c.warmup && c.warmup.raw === 0n });
+      { zero: c.warmup && c.warmup.raw === 0n });
     /* 长期质押与其他质押合并为一行「质押现值」 */
     var stakePresent = lockPresent(c) + poolPresent(c);
     h += row('质押现值', fmt(stakePresent, 9), 'LGNS', {
       cls: 'sum',
-      sub: (cfg.key === 'polygon'
-        ? '长期质押（gons 折算，已含锁仓收益）+ 能量额度质押 / A Stake'
-        : '长期质押（gons 折算，已含锁仓收益）+ 即时 / 债券 / 能量点数')
-        + (cfg.ilo ? '（创世 360 见 ILO 组）' : ''),
       title: '长期质押 ' + exact(lockPresent(c), 9) + ' + 其他质押 ' + exact(poolPresent(c), 9) + ' = ' + exact(stakePresent, 9) + ' LGNS'
     });
     h += '</div>';
@@ -1167,8 +1154,7 @@ details>summary::after{content:none}
         ' <span class="m">' + fmt(poolPresent(c), 9) + '</span></summary><div class="dbody">';
       c.pools.forEach(function (o) {
         h += row(esc(o.label), fmt(o.present, 9), 'LGNS', {
-          zero: o.present === 0n,
-          sub: o.note || 'getDepositorBalance 现值'
+          zero: o.present === 0n
         });
       });
       h += '</div></details>';
@@ -1185,14 +1171,11 @@ details>summary::after{content:none}
           : '无记录') +
         '</span></summary><div class="dbody">';
       h += row('创世 360（Discount Staking）', fmt(ilo.discount, 9), 'LGNS', {
-        zero: (ilo.discount || 0n) === 0n,
-        sub: 'DAI 折价申购 LGNS，协议储备补贴额外 LGNS · getDepositorBalance 现值'
+        zero: (ilo.discount || 0n) === 0n
       });
       h += row('ILO（LGNS 申购）笔数', String(ilo.count || 0), '笔', { zero: !ilo.count });
-      h += row('ILO（LGNS 申购）累计 LGNS', fmt(ilo.lgns, 9), 'LGNS', { zero: ilo.lgns === 0n,
-        sub: 'ILO 合约 getUserDeposits 记录' });
-      h += row('ILO（DAI 申购）累计 DAI', fmt(ilo.idoDai, 18), 'DAI', { zero: ilo.idoDai === 0n,
-        sub: 'ILO Ledger contract totalDaiDeposited' });
+      h += row('ILO（LGNS 申购）累计 LGNS', fmt(ilo.lgns, 9), 'LGNS', { zero: ilo.lgns === 0n });
+      h += row('ILO（DAI 申购）累计 DAI', fmt(ilo.idoDai, 18), 'DAI', { zero: ilo.idoDai === 0n });
       (ilo.records || []).slice(-10).reverse().forEach(function (rec, i) {
         var when = rec.ts ? new Date(Number(rec.ts) * 1000).toISOString().slice(0, 10) : '';
         h += '<div class="ent"><span>#' + (i + 1) + ' ' + (when ? when + ' · ' : '') +
@@ -1238,9 +1221,7 @@ details>summary::after{content:none}
       c.rewards.forEach(function (r) {
         h += row(esc(r.label), fmt(r.raw, 9), 'LGNS', {
           zero: r.raw === 0n,
-          sub: r.kind === 'turbine'
-            ? '涡轮合约内可领余额'
-            : '累计 ' + fmt(r.total, 9) + ' · 已领 ' + fmt(r.claimed, 9),
+          sub: r.kind === 'turbine' ? '' : '累计 ' + fmt(r.total, 9) + ' · 已领 ' + fmt(r.claimed, 9),
           title: r.kind === 'turbine'
             ? 'getTurbineBal 返回的可领余额'
             : '未领取 = 累计 ' + exact(r.total, 9) + ' − 已领 ' + exact(r.claimed, 9)
@@ -1252,8 +1233,7 @@ details>summary::after{content:none}
     /* 长期质押已计息：仅参考 */
     if (lockAccrued(c) > 0n) {
       h += '<details><summary>长期质押已计息（仅参考，不叠加） <span class="m">' + fmt(lockAccrued(c), 9) + '</span></summary><div class="dbody">';
-      h += row('逐笔现值 − 本金 合计', fmt(lockAccrued(c), 9), 'LGNS',
-        { sub: '已折算进上方「长期质押现值」，再相加会重复' });
+      h += row('逐笔现值 − 本金 合计', fmt(lockAccrued(c), 9), 'LGNS');
       h += '</div></details>';
     }
 
