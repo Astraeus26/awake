@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,follow">
 <meta name="color-scheme" content="dark">
-<title>双链 LGNS 总币量查询 · 持仓 + 金本位债券</title>
-<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值（含锁仓收益），以及金本位债券应收 LGNS。">
+<title>双链 LGNS 总币量查询 · 持仓 + 债券</title>
+<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值（含锁仓收益），以及债券应收 LGNS。">
 <style>
 :root{
   --bg:#0d1a2c;
@@ -97,7 +97,7 @@ button{font:inherit;cursor:pointer}
 .hero .k{font-size:12px;color:#8fb2cf;letter-spacing:.03em;display:flex;align-items:center;gap:7px}
 .hero .k i{font-style:normal;font-size:10px;padding:2px 7px;border-radius:6px;background:rgba(124,200,255,.14);color:#9dd8ff;border:1px solid rgba(124,200,255,.25)}
 .hero .k i.n{background:rgba(140,200,255,.07);color:#a9c2d8;border-color:rgba(140,200,255,.18)}
-.who .idx{font:700 10.5px/1 var(--mono);color:#8fb6d6;background:rgba(140,200,255,.1);border:1px solid rgba(140,200,255,.18);border-radius:5px;padding:3px 5px}
+.wallet-head .idx{font:700 10.5px/1 var(--mono);color:#8fb6d6;background:rgba(140,200,255,.1);border:1px solid rgba(140,200,255,.18);border-radius:5px;padding:3px 5px}
 .hero .v{margin:6px 0 4px;font:800 clamp(30px,6.6vw,44px)/1.05 var(--mono);letter-spacing:-.5px;color:#eaf4ff;text-shadow:0 0 34px rgba(124,200,255,.28)}
 .hero .v small{font-size:.42em;letter-spacing:0;color:var(--acc);margin-left:6px;font-weight:700}
 .hero .eq{font-size:11.5px;color:#7d94aa}
@@ -115,12 +115,20 @@ button{font:inherit;cursor:pointer}
 .bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(178,140,246,.9),rgba(124,200,255,.9));transition:width .6s cubic-bezier(.2,.7,.3,1)}
 
 /* ---------- 钱包 / 链卡 ---------- */
-.wallet{margin-top:18px}
-.wallet-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:14px;background:linear-gradient(110deg,rgba(34,56,86,.9),rgba(6,12,20,.92));border:1px solid var(--line);margin-bottom:11px}
-.who{font-weight:750;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
-.who button{background:none;border:0;color:#6f93b5;font-size:11px;padding:2px 4px;white-space:nowrap;flex:0 0 auto}
-.who button:hover{color:var(--acc)}
-.wallet-sum{margin-left:auto;display:flex;align-items:baseline;gap:10px;font-size:12px;color:#93aec5;flex-wrap:wrap;justify-content:flex-end}
+.wallet{margin-top:18px;display:block}
+.wallet .wbody{display:none}
+.wallet.open .wbody{display:block}
+.wallet-head{cursor:pointer;user-select:none}
+.wallet-head:focus-visible{outline:2px solid rgba(140,200,255,.5);outline-offset:2px}
+.wallet .chev{width:7px;height:7px;border-right:1.6px solid #86a7c2;border-bottom:1.6px solid #86a7c2;
+  transform:rotate(-45deg);transition:transform .2s;flex:0 0 auto;margin:0 2px 0 1px;position:relative;top:-1px}
+.wallet.open .chev{transform:rotate(45deg);border-color:#a9d6ff}
+.wallet[open] .chev{transform:rotate(45deg)}
+.wallet-head{transition:border-color .2s,background .2s}
+.wallet-head:hover{background:linear-gradient(110deg,rgba(24,42,66,.95),rgba(12,22,36,.95))}
+.wallet-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border-radius:14px;background:linear-gradient(110deg,rgba(34,56,86,.9),rgba(6,12,20,.92));border:1px solid var(--line);margin-bottom:11px}
+.wallet-sum{margin-left:auto;display:flex;align-items:baseline;gap:12px;font-size:12px;color:#93aec5;flex-wrap:wrap;justify-content:flex-end}
+.waddr{font-weight:750;font-size:14px;color:var(--ink);letter-spacing:.2px}
 .wallet-sum b{font:800 16px/1 var(--mono);color:var(--acc-2)}
 
 .grid{display:grid;grid-template-columns:1fr;gap:11px}
@@ -211,7 +219,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   <h1>双链 <em>LGNS 总币量</em></h1>
   <p class="lede">
     汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的全部 LGNS：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值，
-    <b>ILO 系列仓位</b>（A 币各期质押、金库等）、<b>金本位债券</b>（销毁债券 / 固定价值债券 / DAI·USDT·LP 等）的应收 LGNS，以及<b>涡轮、蛛网、DAO</b> 等独立奖励的待领。
+    <b>ILO 系列仓位</b>（A 币各期质押、金库等）、<b>债券</b>（销毁债券 / 固定价销毁债券 / DAI·USDT·LP 等）的应收 LGNS，以及<b>涡轮、蛛网、DAO</b> 等独立奖励的待领。
     锁仓现值按 gons 实时折算、<b>已含锁仓内产生的收益</b>，这部分不再重复叠加。纯链上只读，不签名、不发送交易。
   </p>
 
@@ -230,7 +238,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
   <div class="foot">
     数据源：Polygon / Anubis 链上合约（eth_call，分批读取）· 只读查询 · 不需要连接钱包<br>
-    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 预热质押期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 金本位债券应收 LGNS + 涡轮/蛛网/DAO 待领<br>
+    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 预热质押期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 债券应收 LGNS + 涡轮/蜘蛛网/DAO 待领<br>
     锁仓「已计息」已包含在锁仓现值里，只作参考、不重复相加；债券与涡轮等奖励来自独立合约，领取不影响持仓，照实相加<br>
     覆盖：两链 LGNS / sLGNS、质押池预热期、Polygon 7 类锁仓（60/120/240/360/360V2/600 天 + 能量值）、Anubis 2 类长期锁仓、
     17 类债券、7 个奖励合约、ILO 系列质押仓位、钱包内 DAI / USDT / WBTC / wETH / A / LP / GLGNS 等代币；NFT、彩票、治理类不产生 LGNS 余额，未计入数量统计
@@ -272,13 +280,13 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       staking: '0x1964Ca90474b11FFD08af387b110ba6C96251Bfc',
       // 计入 LGNS 总量的锁仓（本金口径 getDepositorBalance）
       locks: [
-        { label: '60 天锁仓',   addr: '0xdAd4d3fE850C8C57a2880F1C7D9141F2bCf3B65A' },
-        { label: '120 天锁仓',  addr: '0xa22ca986cA163ab51f33fb534D559E4E03445c44' },
-        { label: '240 天锁仓',  addr: '0xED24055c04609500AdB329c4eB82AAE49a478B8f' },
-        { label: '360 天锁仓',  addr: '0x14fcA7bfa779A4172c9b2DE61fd352C005442520' },
-        { label: '360 天锁仓 V2', addr: '0x6652d0f0D7aEc5070804E55b7023d32B9Bbc4190' },
-        { label: '600 天锁仓',  addr: '0x8cA97F41d2C81AF050656e8AD0Cf543820a24504' },
-        { label: '能量值质押',  addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07' }
+        { label: '60 天长期质押',   addr: '0xdAd4d3fE850C8C57a2880F1C7D9141F2bCf3B65A' },
+        { label: '120 天长期质押',  addr: '0xa22ca986cA163ab51f33fb534D559E4E03445c44' },
+        { label: '240 天长期质押',  addr: '0xED24055c04609500AdB329c4eB82AAE49a478B8f' },
+        { label: '360 天长期质押',  addr: '0x14fcA7bfa779A4172c9b2DE61fd352C005442520' },
+        { label: '360 天长期质押 V2', addr: '0x6652d0f0D7aEc5070804E55b7023d32B9Bbc4190' },
+        { label: '600 天长期质押',  addr: '0x8cA97F41d2C81AF050656e8AD0Cf543820a24504' },
+        { label: '能量值质押（销毁 LGNS）', addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07' }
       ],
       // 单位未确认的仓位：照实展示，不计入 LGNS 总量
       others: [
@@ -308,9 +316,9 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         { label: 'LP 债券',          addr: '0x2EC37eAb8C1a3EA0eDa2296495bf7BE6c62e2788', sym: 'LP',   dec: 18 }
       ],
       rewards: [
-        { label: '涡轮 Turbine',   addr: '0x07Ff4e06865de4934409Aa6eCea503b08Cc1C78d', kind: 'turbine' },
-        { label: '蛛网奖励',       addr: '0x806FDab92B0Fc7fBE4bbBE5117A54cAa9283d5a4', kind: 'rewardOf' },
-        { label: '社区/推广奖励',  addr: '0xa49aba84930299c6c2d537456A3e681bB4500f15', kind: 'rewardOf' }
+        { label: '涡轮', addr: '0x07Ff4e06865de4934409Aa6eCea503b08Cc1C78d', kind: 'turbine', short: '涡轮' },
+        { label: '蜘蛛网奖励', addr: '0x806FDab92B0Fc7fBE4bbBE5117A54cAa9283d5a4', kind: 'rewardOf', short: '蜘蛛网' },
+        { label: '社区奖励', addr: '0xa49aba84930299c6c2d537456A3e681bB4500f15', kind: 'rewardOf', short: '社区奖励' }
       ],
       extras: [
         { label: 'DAI',            sym: 'DAI',  addr: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', dec: 18 },
@@ -330,22 +338,22 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       slgns: '0x2243aE29F73137d678197b61B0621AE942845B8C',
       staking: '0x7a2E3fA6eA60437F0441b8eb5e60674B80339228',
       locks: [
-        { label: '360 天长期质押', addr: '0x88ea98af226Cd4402A3873400308a4D78784eCE6' },
-        { label: '600 天长期质押', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
+        { label: '长期质押 360', addr: '0x88ea98af226Cd4402A3873400308a4D78784eCE6' },
+        { label: '长期质押 600', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
       ],
       others: [
-        { label: '活动积分质押', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E' },
+        { label: '能量质押', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E' },
         { label: '折扣质押',     addr: '0x5584CDeb1369673C91C6aD7EBea0cE7cB630ce60' },
         { label: '即时质押',     addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824' }
       ],
       bonds: [
         { label: '销毁债券',      addr: '0x11b10C9827c5B7071E96fcAa143B4e6E86b17c69', sym: 'DAI', dec: 18, abi: 'burn' },
-        { label: '固定销毁债券',  addr: '0x3f403751975e1EB06d95901f7FF246513444E71F', sym: 'DAI', dec: 18, abi: 'burn' }
+        { label: '固定价销毁债券', addr: '0x3f403751975e1EB06d95901f7FF246513444E71F', sym: 'DAI', dec: 18, abi: 'burn' }
       ],
       rewards: [
-        { label: '涡轮 Turbine', addr: '0x92B53785090F6FE0717Ca3cF5dB8f8040d3B070b', kind: 'turbine' },
-        { label: '蛛网奖励',     addr: '0xF7a0cacDF0810609EE5618247C4121b799E41664', kind: 'rewardOf' },
-        { label: '社区奖励 DAO', addr: '0x579a71890aE0E99806f75cD2e006bB07559C3b49', kind: 'rewardOf' }
+        { label: '涡轮', addr: '0x92B53785090F6FE0717Ca3cF5dB8f8040d3B070b', kind: 'turbine', short: '涡轮' },
+        { label: '蜘蛛网奖励', addr: '0xF7a0cacDF0810609EE5618247C4121b799E41664', kind: 'rewardOf', short: '蜘蛛网' },
+        { label: 'DAO 奖励', addr: '0x579a71890aE0E99806f75cD2e006bB07559C3b49', kind: 'rewardOf', short: 'DAO' }
       ],
       extras: [
         { label: 'DAI',   sym: 'DAI',   addr: '0x83fd06F0846d9D90B3016bF670Efe2E0B11cDe14', dec: 18 },
@@ -800,7 +808,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     c.locks.forEach(function (l) { (l.items || []).forEach(function (it) { t += it.accrued || 0n; }); });
     return t;
   }
-  // 金本位债券：合约记录的应付 LGNS（销毁债券按 getClaimable）
+  // 债券：合约记录的应付 LGNS（销毁债券按 getClaimable）
   function bondPayable(c) { return c.bonds.reduce(function (s, b) { return s + (b.payable || 0n); }, 0n); }
   function rewardSum(c) { return c.rewards.reduce(function (s, r) { return s + (r.raw || 0n); }, 0n); }
   // 持仓：钱包 + sLGNS + 预热质押期 + 锁仓现值（锁仓现值 = ΣbalanceForGons(gons)，已含已产生收益）
@@ -811,7 +819,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     return (c.lgns ? c.lgns.raw : 0n) + (c.flex ? c.flex.raw : 0n) +
            (c.warmup ? c.warmup.raw : 0n) + lockPrincipal(c) + otherPrincipal(c);
   }
-  // 总币量 = 持仓（含锁仓收益） + 金本位债券应付 + 其它合约待领
+  // 总币量 = 持仓（含锁仓收益） + 债券应付 + 其它合约待领
   function chainTotal(c) { return holdings(c) + bondPayable(c) + rewardSum(c); }
 
   async function queryWallet(address) {
@@ -844,7 +852,9 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       '<div class="tot"><span>本链总币量</span><b>' + fmt2(total, 9) + '</b>' +
       '<span class="parts"><i>持仓 ' + fmt(hold, 9) + '</i>' +
       (gold > 0n ? '<i>债券 ' + fmt(gold, 9) + '</i>' : '') +
-      (rw > 0n ? '<i>奖励 ' + fmt(rw, 9) + '</i>' : '') + '</span></div>' +
+      c.rewards.filter(function (r) { return r.raw > 0n; })
+        .map(function (r) { return '<i>' + esc(r.short || r.label) + ' ' + fmt(r.raw, 9) + '</i>'; }).join('') +
+      '</span></div>' +
       '<a class="verify" href="' + cfg.explorer + wallet + '" target="_blank" rel="noopener">链上验证 ↗ ' + esc(short(wallet)) + '</a></div>';
 
     /* 持仓构成 */
@@ -896,10 +906,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       h += '</div></details>';
     }
 
-    /* 金本位债券 */
+    /* 债券 */
     if (c.bonds.length) {
       var heldBonds = c.bonds.filter(function (b) { return b.count > 0; });
-      h += '<details><summary>金本位债券（计入） <span class="m">' +
+      h += '<details><summary>债券（计入） <span class="m">' +
         (heldBonds.length ? fmt(gold, 9) + ' LGNS' : c.bonds.length + ' 类 · 无持仓') + '</span></summary><div class="dbody">';
       if (!heldBonds.length) {
         h += '<div class="ent" style="border-left-color:rgba(140,200,255,.12)"><span>已核对 ' + c.bonds.length +
@@ -921,14 +931,14 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         });
         h += '</div>';
       });
-      h += '<div class="note" style="margin:6px 0 0">金本位债券（DAI 本位 / 固定价值）支付的 LGNS 与钱包持仓相互独立，' +
+      h += '<div class="note" style="margin:6px 0 0">债券（DAI 本位 / 固定价值）支付的 LGNS 与钱包持仓相互独立，' +
         '领取不会减少任何持仓，因此计入总币量。</div>';
       h += '</div></details>';
     }
 
     /* 其它合约待领（计入） */
     if (c.rewards.length) {
-      h += '<details><summary>涡轮 / 蛛网 / DAO（计入） <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
+      h += '<details><summary>涡轮 / 蜘蛛网 / DAO 奖励（计入） <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
       c.rewards.forEach(function (r) {
         h += row(esc(r.label), fmt(r.raw, 9), 'LGNS', {
           zero: r.raw === 0n,
@@ -992,15 +1002,15 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   function walletBlock(w, idx, total2) {
     var p = w.chains[0], a = w.chains[1];
     var tp = chainTotal(p), ta = chainTotal(a);
-    var h = '<div class="wallet">';
-    h += '<div class="wallet-head"><div class="who">' +
+    var open = (total2 <= 1);
+    var h = '<div class="wallet' + (open ? ' open' : '') + '" id="w' + ((idx || 0) + 1) + '">';
+    h += '<div class="wallet-head" role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+      '<span class="chev" aria-hidden="true"></span>' +
       ((total2 > 1) ? '<span class="idx">#' + ((idx || 0) + 1) + '</span>' : '') +
-      '<span title="' + esc(w.address) + '">' + esc(short(w.address)) + '</span>' +
-      '<button type="button" data-copy="' + esc(w.address) + '">复制地址</button>' +
-      '<button type="button" data-copy-summary="1">复制结果</button></div>' +
-      '<div class="wallet-sum"><span>Polygon ' + fmt(tp, 9) + '</span>' +
-      '<span>Anubis ' + fmt(ta, 9) + '</span><b>' + fmt2(tp + ta, 9) + ' LGNS</b></div></div>';
-    h += '<div class="grid">' + chainCard(p, w.address) + chainCard(a, w.address) + '</div>';
+      '<span class="waddr" title="' + esc(w.address) + '">' + esc(short(w.address)) + '</span>' +
+      '<span class="wallet-sum"><span>Polygon ' + fmt(tp, 9) + '</span>' +
+      '<span>Anubis ' + fmt(ta, 9) + '</span><b>' + fmt2(tp + ta, 9) + ' LGNS</b></span></div>';
+    h += '<div class="wbody"><div class="grid">' + chainCard(p, w.address) + chainCard(a, w.address) + '</div></div>';
     h += '</div>';
     return h;
   }
@@ -1028,10 +1038,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       '<div class="v" title="' + esc(exact(total, 9)) + '">' + fmt2(total, 9) + '<small>LGNS</small></div>' +
       '<div class="eq">钱包 ' + fmt(free, 9) + ' + 活期 ' + fmt(flex, 9) + ' + 预热质押期 ' + fmt(warm, 9) +
       ' + 锁仓现值 ' + fmt(lock, 9) + (iloAll > 0n ? ' + ILO ' + fmt(iloAll, 9) : '') + (gold > 0n ? ' + 债券 ' + fmt(gold, 9) : '') +
-      (rwAll > 0n ? ' + 奖励 ' + fmt(rwAll, 9) : '') + '</div></div>' +
+      (rwAll > 0n ? ' + 涡轮等待领 ' + fmt(rwAll, 9) : '') + '</div></div>' +
       '<div class="hero-side">' +
       '<div class="mini"><span>其中持仓</span><b>' + fmt(hold, 9) + '</b></div>' +
-      '<div class="mini mute"><span>债券 + 奖励待领</span><b>' + fmt(gold + rwAll, 9) + '</b></div>' +
+      '<div class="mini mute"><span>债券 / 涡轮等待领</span><b>' + fmt(gold + rwAll, 9) + '</b></div>' +
       '</div>' +
       '<div class="split">' +
       '<div class="bar"><div class="t"><span>Polygon</span><b>' + fmt(chainP, 9) + '</b></div><div class="track"><div class="fill" style="width:' + pct(chainP, total) + '%"></div></div></div>' +
@@ -1138,21 +1148,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     }
   }
 
-  function summaryText() {
-    if (!state.last) return '';
-    var lines = [];
-    var P = 0n, A = 0n, lockAcc = 0n;
-    state.last.forEach(function (w) {
-      P += chainTotal(w.chains[0]); A += chainTotal(w.chains[1]);
-      lockAcc += lockAccrued(w.chains[0]) + lockAccrued(w.chains[1]);
-    });
-    lines.push('LGNS 总币量：' + fmt(P + A, 9));
-    lines.push('Polygon：' + fmt(P, 9));
-    lines.push('Anubis：' + fmt(A, 9));
-    lines.push('（锁仓已计息 ' + fmt(lockAcc, 9) + ' 已含在锁仓现值内，不重复相加）');
-    lines.push('钱包：' + state.last.map(function (w) { return w.address; }).join(', '));
-    return lines.join('\n');
-  }
 
   function init() {
     $('go').addEventListener('click', run);
@@ -1165,20 +1160,25 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       setStatus('已清空输入与本机记住的钱包');
       $('addr').focus();
     });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var hd = e.target && e.target.closest ? e.target.closest('.wallet-head') : null;
+      if (!hd) return;
+      e.preventDefault();
+      var w = hd.parentNode, on = w.classList.toggle('open');
+      hd.setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
     $('addr').addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); }
     });
     document.addEventListener('click', function (e) {
       var t = e.target;
-      if (t && t.dataset && t.dataset.copy) {
-        navigator.clipboard && navigator.clipboard.writeText(t.dataset.copy);
-        var old = t.textContent; t.textContent = '已复制';
-        setTimeout(function () { t.textContent = old; }, 1200);
-      }
-      if (t && t.dataset && t.dataset.copySummary) {
-        navigator.clipboard && navigator.clipboard.writeText(summaryText());
-        var o2 = t.textContent; t.textContent = '已复制';
-        setTimeout(function () { t.textContent = o2; }, 1200);
+      var head = t && t.closest ? t.closest('.wallet-head') : null;
+      if (head) {
+        var box2 = head.parentNode;
+        var isOpen = box2.classList.toggle('open');
+        head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        return;
       }
     });
     var saved = loadSaved();
