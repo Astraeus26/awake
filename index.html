@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,follow">
 <meta name="color-scheme" content="dark">
 <title>双链 LGNS 总币量查询 · 持仓 + 债券</title>
-<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值（含锁仓收益），以及债券应收 LGNS。">
+<meta name="description" content="查询钱包在 Polygon 与 Anubis 的 LGNS 总币量：钱包余额、活期 sLGNS、预热质押期、长期质押现值、A Stake / 能量额度 / 即时・债券・能量点数・创世360 质押现值，以及债券应收 LGNS 与涡轮・蜘蛛网・DAO 待领。">
 <style>
 :root{
   --bg:#0d1a2c;
@@ -218,9 +218,12 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   <div class="eyebrow"><span class="dot"></span><span>ORIGIN · DUAL-CHAIN HOLDINGS</span><span class="tag">READ ONLY</span></div>
   <h1>双链 <em>LGNS 总币量</em></h1>
   <p class="lede">
-    汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的全部 LGNS：钱包余额、活期 sLGNS、预热质押期、各期锁仓现值，
-    <b>ILO 系列仓位</b>（A 币各期质押、金库等）、<b>债券</b>（销毁债券 / 固定价销毁债券 / DAI·USDT·LP 等）的应收 LGNS，以及<b>涡轮、蛛网、DAO</b> 等独立奖励的待领。
-    锁仓现值按 gons 实时折算、<b>已含锁仓内产生的收益</b>，这部分不再重复叠加。纯链上只读，不签名、不发送交易。
+    汇总 <b>Polygon</b> 与 <b>Anubis</b> 上钱包的 LGNS：钱包余额、活期 sLGNS、预热质押期、长期质押现值，
+    Polygon 的 <b>能量额度质押 360</b> 与 <b>A Stake</b> 系列，Anubis 的 <b>即时质押 / 债券质押 / 能量点数</b>，以及 ILO 页里的 <b>创世 360</b>，
+    以及 <b>债券</b>应收 LGNS 与<b>涡轮、蜘蛛网、DAO</b> 等独立奖励待领。
+    长期质押现值按 gons 实时折算、<b>已含锁仓内产生的收益</b>，这部分不再重复叠加。
+    Anubis <b>ILO</b> 按官网 <b>/ilo</b> 页整组展示：创世 360 计入总量，ILO(LGNS) / ILO(DAI) 属申购额度、不计入。Polygon 端没有 ILO 产品。
+    纯链上只读，不签名、不发送交易。
   </p>
 
   <div class="qcard">
@@ -238,10 +241,9 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
   <div class="foot">
     数据源：Polygon / Anubis 链上合约（eth_call，分批读取）· 只读查询 · 不需要连接钱包<br>
-    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 预热质押期 + 锁仓现值（gons 折算，已含锁仓收益）+ ILO/其他质押 + 债券应收 LGNS + 涡轮/蜘蛛网/DAO 待领<br>
-    锁仓「已计息」已包含在锁仓现值里，只作参考、不重复相加；债券与涡轮等奖励来自独立合约，领取不影响持仓，照实相加<br>
-    覆盖：两链 LGNS / sLGNS、质押池预热期、Polygon 7 类锁仓（60/120/240/360/360V2/600 天 + 能量值）、Anubis 2 类长期锁仓、
-    17 类债券、7 个奖励合约、ILO 系列质押仓位、钱包内 DAI / USDT / WBTC / wETH / A / LP / GLGNS 等代币；NFT、彩票、治理类不产生 LGNS 余额，未计入数量统计
+    口径：总币量 = 钱包 LGNS + 活期 sLGNS + 预热质押期 + 质押现值（长期质押 gons 折算已含收益 + 能量额度/A Stake/即时/债券/能量点数）+ 债券应收 LGNS + 涡轮/蜘蛛网/DAO 待领<br>
+    不计入：Anubis ILO(LGNS) / ILO(DAI) 申购额度、Polygon 端无 ILO 产品、钱包内 DAI / USDT / WBTC / wETH / OUSD(A) / LP / GLGNS 等非 LGNS 资产<br>
+    合约清单对齐官网：Polygon 长期质押 60/120/240/360/360-V2/600 天、能量额度质押 360、A Stake 120/240/360/360-LGNS、17 类债券、3 个奖励合约；Anubis 长期质押 360/600、即时质押、债券质押、能量点数、ILO 页（创世 360 + ILO(LGNS) + ILO(DAI)）、销毁债券 2 类、3 个奖励合约；NFT、彩票、治理类不产生 LGNS 余额，未计入数量统计
   </div>
 </div>
 
@@ -251,25 +253,31 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
   /* ========================================================================
      0. 常量与选择器
+     选择器均按 keccak 实测并与官网前端 ABI 对过；注释为函数签名。
      ====================================================================== */
   var SEL = {
-    balanceOf:        '0x70a08231',
-    decimals:         '0x313ce567',
+    balanceOf:        '0x70a08231', // balanceOf(address)
+    decimals:         '0x313ce567', // decimals()
     warmupInfo:       '0x6746f4c2', // warmupInfo(address) -> (deposit, gons, expiry, lock)
     stakesCount:      '0x98dc8dea', // getUserStakesCount(address)
-    stakes:           '0x584b62a1', // stakes(address,uint256)
-    depositorBalance: '0xb79215d6', // getDepositorBalance(address)
+    stakes:           '0x584b62a1', // stakes(address,uint256) -> (principal, gons, startBlock, expiry, warmup, lastBlock, ...)
+    depositorBalance: '0xb79215d6', // getDepositorBalance(address) —— LGNS 9 位小数现值
     bondLength:       '0x7d01a8d7', // getBondInfoDataLength(address)
     bondData:         '0x7123eab7', // getBondInfoData(address) -> Bond[]
     pendingPayoutFor: '0x3796c67e', // pendingPayoutFor(address,uint256)
+    pendingPayout:    '0xda709204', // pendingPayout(address,uint256)
     depositCount:     '0x1bae91a4', // getUserDepositCount(address)
     deposit:          '0x60711058', // getUserDeposit(address,uint256)
     claimable:        '0x6f5244b1', // getClaimable(address,uint256)
-    rewardOf:         '0x1d62ebd9', // rewardOf(address)
+    rewardOf:         '0x1d62ebd9', // rewardOf(address) -> (total, claimed)
     turbineBal:       '0xb4131557', // getTurbineBal(address)
-    balanceForGons:   '0x7965d56d'  // balanceForGons(uint256) —— gons 折算成当前 LGNS
+    balanceForGons:   '0x7965d56d', // balanceForGons(uint256) —— gons 折算成当前 LGNS
+    iloDeposits:      '0x2a5bf6d2', // getUserDeposits(address) —— Anubis ILO
+    idoDeposits:      '0x4698b883', // getUserDeposits(address,offset,limit) —— Anubis ILO(DAI)
+    idoTotalDai:      '0xde4a534e'  // totalDaiDeposited(address)
   };
 
+  /* 产品线严格按官网前端配置（rocket.origindefi.io = Polygon，anubis.origindefi.io = Anubis） */
   var CHAINS = {
     polygon: {
       key: 'polygon', name: 'Polygon', cls: 'poly',
@@ -278,23 +286,27 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       lgns: '0xeB51D9A39AD5EEF215dC0Bf39a8821ff804A0F01',
       slgns: '0x99a57E6C8558BC6689f894e068733ADf83C19725',
       staking: '0x1964Ca90474b11FFD08af387b110ba6C96251Bfc',
-      // 计入 LGNS 总量的锁仓（本金口径 getDepositorBalance）
-      locks: [
-        { label: '60 天长期质押',   addr: '0xdAd4d3fE850C8C57a2880F1C7D9141F2bCf3B65A' },
-        { label: '120 天长期质押',  addr: '0xa22ca986cA163ab51f33fb534D559E4E03445c44' },
-        { label: '240 天长期质押',  addr: '0xED24055c04609500AdB329c4eB82AAE49a478B8f' },
-        { label: '360 天长期质押',  addr: '0x14fcA7bfa779A4172c9b2DE61fd352C005442520' },
-        { label: '360 天长期质押 V2', addr: '0x6652d0f0D7aEc5070804E55b7023d32B9Bbc4190' },
-        { label: '600 天长期质押',  addr: '0x8cA97F41d2C81AF050656e8AD0Cf543820a24504' },
-        { label: '能量值质押（销毁 LGNS）', addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07' }
+      // 长期质押（gons 计息，getDepositorBalance = 现值）
+      longLocks: [
+        { label: '长期质押 · 60 天',    addr: '0xdAd4d3fE850C8C57a2880F1C7D9141F2bCf3B65A' },
+        { label: '长期质押 · 120 天',   addr: '0xa22ca986cA163ab51f33fb534D559E4E03445c44' },
+        { label: '长期质押 · 240 天',   addr: '0xED24055c04609500AdB329c4eB82AAE49a478B8f' },
+        { label: '长期质押 · 360 天',   addr: '0x14fcA7bfa779A4172c9b2DE61fd352C005442520' },
+        { label: '长期质押 · 360 天 V2', addr: '0x6652d0f0D7aEc5070804E55b7023d32B9Bbc4190' },
+        { label: '长期质押 · 600 天',   addr: '0x8cA97F41d2C81AF050656e8AD0Cf543820a24504' }
       ],
-      // 单位未确认的仓位：照实展示，不计入 LGNS 总量
-      others: [
-        { label: 'A 币 120 天质押', addr: '0x33b69112FFF18eeA99834ACa7Db4021BebC1E084' },
-        { label: 'A 币 240 天质押', addr: '0x65Ed60E414CEcE532d8afF90c89dA369E44CF883' },
-        { label: 'A 币 360 天质押', addr: '0xDa13C7553A654601667adf9a1A16248bAB584F13' },
-        { label: 'A 币 360 天（代币）', addr: '0x23E2B07d85a8dbc307742C72aadbbdde4E5e2EFB' },
-        { label: '金库 Vault',     addr: '0xC90e5B113368Fb33d64E69F9fF3927C30F9a2553' }
+      // 其他 LGNS 计价质押（官网「A Stake」页与能量额度体系，均为 getDepositorBalance 现值）
+      pools: [
+        { label: '能量额度质押 · 360 天', addr: '0x25a4b842cB200E9148FF5a11BAbF80488c8d8b07',
+          note: '质押 LGNS 换能量额度（额度用于铸造 A），质押不等于销毁' },
+        { label: 'A Stake · 120 天', addr: '0x33b69112FFF18eeA99834ACa7Db4021BebC1E084',
+          note: 'DAI 申购，按 LGNS 现值计价，收益以 A（隐私稳定币）结算' },
+        { label: 'A Stake · 240 天', addr: '0x65Ed60E414CEcE532d8afF90c89dA369E44CF883',
+          note: 'DAI 申购，按 LGNS 现值计价，收益以 A（隐私稳定币）结算' },
+        { label: 'A Stake · 360 天', addr: '0xDa13C7553A654601667adf9a1A16248bAB584F13',
+          note: 'DAI 申购，按 LGNS 现值计价，收益以 A（隐私稳定币）结算' },
+        { label: 'A Stake · 360 天（LGNS）', addr: '0x23E2B07d85a8dbc307742C72aadbbdde4E5e2EFB',
+          note: '直接以 LGNS 申购，按 LGNS 现值计价' }
       ],
       bonds: [
         { label: 'DAI 债券 · 30 天',  addr: '0x152Ed4367ae89FBB37055780dB228dc178cB4330', sym: 'DAI',  dec: 18 },
@@ -304,7 +316,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         { label: 'DAI 债券 · 360 天', addr: '0xa9c9eFB2AeEc103116B58B85cfeEFBB1b1FD1433', sym: 'DAI',  dec: 18 },
         { label: 'DAI 债券 · 600 天', addr: '0xB867370e6DFe37804e2A930fa8c19915170f3eCe', sym: 'DAI',  dec: 18 },
         { label: 'USDT 债券',        addr: '0xbE741d070c6d26109b95ddcD7B6da47395272f45', sym: 'USDT', dec: 6  },
-        { label: 'DAI 债券',         addr: '0x59A6693CaA6305b1E4F16176D5228C32E24717E5', sym: 'DAI',  dec: 18 },
+        { label: 'DAI 债券（固定期）', addr: '0x59A6693CaA6305b1E4F16176D5228C32E24717E5', sym: 'DAI',  dec: 18 },
         { label: 'WBTC 债券',        addr: '0x4337E95f99d28bE9a013a17306542F835f7e6373', sym: 'WBTC', dec: 8  },
         { label: 'wETH 债券',        addr: '0x2EaF2221f4A8234c2a4aF65DCA38Eaf3CCe52DF1', sym: 'wETH', dec: 18 },
         { label: 'LP 债券 · 30 天',  addr: '0x579906B27d5c9f88d3a1C21d9150aA5C4544399D', sym: 'LP',   dec: 18 },
@@ -316,16 +328,16 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         { label: 'LP 债券',          addr: '0x2EC37eAb8C1a3EA0eDa2296495bf7BE6c62e2788', sym: 'LP',   dec: 18 }
       ],
       rewards: [
-        { label: '涡轮', addr: '0x07Ff4e06865de4934409Aa6eCea503b08Cc1C78d', kind: 'turbine', short: '涡轮' },
-        { label: '蜘蛛网奖励', addr: '0x806FDab92B0Fc7fBE4bbBE5117A54cAa9283d5a4', kind: 'rewardOf', short: '蜘蛛网' },
-        { label: '社区奖励', addr: '0xa49aba84930299c6c2d537456A3e681bB4500f15', kind: 'rewardOf', short: '社区奖励' }
+        { label: '涡轮（Turbine）', addr: '0x07Ff4e06865de4934409Aa6eCea503b08Cc1C78d', kind: 'turbine', short: '涡轮' },
+        { label: '蜘蛛网（Mint Reward）', addr: '0x806FDab92B0Fc7fBE4bbBE5117A54cAa9283d5a4', kind: 'rewardOf', short: '蜘蛛网' },
+        { label: '社区奖励（Community Reward）', addr: '0xa49aba84930299c6c2d537456A3e681bB4500f15', kind: 'rewardOf', short: '社区奖励' }
       ],
       extras: [
         { label: 'DAI',            sym: 'DAI',  addr: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', dec: 18 },
         { label: 'USDT',           sym: 'USDT', addr: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', dec: 6  },
         { label: 'WBTC',           sym: 'WBTC', addr: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', dec: 8  },
         { label: 'wETH',           sym: 'wETH', addr: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', dec: 18 },
-        { label: 'A 稳定币',       sym: 'A',    addr: '0x6631eE651DA438Db2BE611B5A44dFE2Ca04590C5', dec: null },
+        { label: 'OUSD（隐私稳定币 A）', sym: 'OUSD', addr: '0x6631eE651DA438Db2BE611B5A44dFE2Ca04590C5', dec: 18 },
         { label: 'LGNS/DAI LP',    sym: 'LP',   addr: '0x882df4B0fB50a229C3B4124EB18c759911485bFb', dec: 18 }
       ]
     },
@@ -337,28 +349,37 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       lgns: '0x4D1D808a081FdAc440703b3765FC61f8028C06B8',
       slgns: '0x2243aE29F73137d678197b61B0621AE942845B8C',
       staking: '0x7a2E3fA6eA60437F0441b8eb5e60674B80339228',
-      locks: [
-        { label: '长期质押 360', addr: '0x88ea98af226Cd4402A3873400308a4D78784eCE6' },
-        { label: '长期质押 600', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
+      longLocks: [
+        { label: '长期质押 · 360 天', addr: '0x88ea98af226Cd4402A3873400308a4D78784eCE6' },
+        { label: '长期质押 · 600 天', addr: '0x04eD22c6d1D020A9B5e032E93D79ab28293EF72f' }
       ],
-      others: [
-        { label: '能量质押', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E' },
-        { label: '折扣质押',     addr: '0x5584CDeb1369673C91C6aD7EBea0cE7cB630ce60' },
-        { label: '即时质押',     addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824' }
+      pools: [
+        { label: '即时质押（Instant Staking）', addr: '0xf7788F5A5CbBaFAc4120c63C79dcd9F1931c7824',
+          note: '官网「我的仓位」中以 getDepositorBalance 计' },
+        { label: '债券质押（Bond Staking）', addr: '0xF190Ab12B73BFE1B626379aF96e8f1859ec91F20',
+          note: '质押 LGNS 获取债券额度' },
+        { label: '能量点数（Activity Point）', addr: '0x1E5FeeC473F7F445FC7F5FeEC0beABB2270b0b4E',
+          note: '官网中文名「能量点数」，不是「能量质押」' }
       ],
+      // Anubis 的 ILO 页（/ilo）包含三块：创世 360（Discount Staking）、ILO(LGNS)、ILO(DAI)
+      // 创世 360 是 LGNS 计价仓位（计入）；两个 ILO 是申购额度（仅展示、不计入）
+      ilo: {
+        discount: '0x5584CDeb1369673C91C6aD7EBea0cE7cB630ce60',
+        lgnsIlo: '0x4fF8e905Ab40Ed18355b0b2C0DfAe8213d5D8d90',
+        idoLedger: '0x5E6d77F8071642561c999E97c1022108b8D5DE57'
+      },
       bonds: [
         { label: '销毁债券',      addr: '0x11b10C9827c5B7071E96fcAa143B4e6E86b17c69', sym: 'DAI', dec: 18, abi: 'burn' },
         { label: '固定价销毁债券', addr: '0x3f403751975e1EB06d95901f7FF246513444E71F', sym: 'DAI', dec: 18, abi: 'burn' }
       ],
       rewards: [
-        { label: '涡轮', addr: '0x92B53785090F6FE0717Ca3cF5dB8f8040d3B070b', kind: 'turbine', short: '涡轮' },
-        { label: '蜘蛛网奖励', addr: '0xF7a0cacDF0810609EE5618247C4121b799E41664', kind: 'rewardOf', short: '蜘蛛网' },
+        { label: '涡轮（Turbine）', addr: '0x92B53785090F6FE0717Ca3cF5dB8f8040d3B070b', kind: 'turbine', short: '涡轮' },
+        { label: '蜘蛛网（Cobweb）', addr: '0xF7a0cacDF0810609EE5618247C4121b799E41664', kind: 'rewardOf', short: '蜘蛛网' },
         { label: 'DAO 奖励', addr: '0x579a71890aE0E99806f75cD2e006bB07559C3b49', kind: 'rewardOf', short: 'DAO' }
       ],
       extras: [
         { label: 'DAI',   sym: 'DAI',   addr: '0x83fd06F0846d9D90B3016bF670Efe2E0B11cDe14', dec: 18 },
-        { label: 'GLGNS', sym: 'GLGNS', addr: '0xf140a92C156e76F5A1d3D6f96284b250330F8F4c', dec: null },
-        { label: 'Kopek', sym: 'KOPEK', addr: '0x8c6C69d640A392645EBcD021d3bfD8dD177cCeFB', dec: null }
+        { label: 'GLGNS', sym: 'GLGNS', addr: '0xf140a92C156e76F5A1d3D6f96284b250330F8F4c', dec: null }
       ]
     }
   };
@@ -524,7 +545,6 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       }
     }
 
-    // 最多 4 个批次并发
     var idx = 0;
     async function worker() {
       while (idx < jobs.length) {
@@ -573,6 +593,20 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     return Math.round((Number(block) - bt.cur) * bt.spb / 86400);
   }
 
+  /* Anubis 部分质押合约的 expiry 字段是秒级时间戳而不是区块号，这里做一次判别 */
+  function expiryDate(v, bt) {
+    if (v === null || v === undefined || v === 0n) return null;
+    var n = Number(v);
+    if (n > 2000000000) return new Date(n * 1000).toISOString().slice(0, 10);
+    return matDate(v, bt);
+  }
+  function expiryDays(v, bt) {
+    if (v === null || v === undefined || v === 0n) return null;
+    var n = Number(v);
+    if (n > 2000000000) return Math.round((n * 1000 - Date.now()) / 86400000);
+    return daysLeft(v, bt);
+  }
+
   /* ========================================================================
      3. 读取：一条链 × 一个钱包
      ====================================================================== */
@@ -581,7 +615,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     var res = {
       key: chainKey, cfg: cfg,
       lgns: null, flex: null, warmup: null,
-      locks: [], others: [], bonds: [], rewards: [], extras: [],
+      locks: [], pools: [], bonds: [], rewards: [], extras: [], ilo: null,
       errors: [], bt: null
     };
 
@@ -591,11 +625,11 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     push('lgns', cfg.lgns, SEL.balanceOf + A);
     push('flex', cfg.slgns, SEL.balanceOf + A);
     push('warmup', cfg.staking, SEL.warmupInfo + A);
-    cfg.locks.forEach(function (l, i) {
+    cfg.longLocks.forEach(function (l, i) {
       push('lockCount' + i, l.addr, SEL.stakesCount + A);
       push('lockTotal' + i, l.addr, SEL.depositorBalance + A);
     });
-    cfg.others.forEach(function (o, i) { push('otherTotal' + i, o.addr, SEL.depositorBalance + A); });
+    cfg.pools.forEach(function (o, i) { push('poolTotal' + i, o.addr, SEL.depositorBalance + A); });
     cfg.bonds.forEach(function (b, i) {
       push('bondLen' + i, b.addr, b.abi === 'burn' ? SEL.depositCount + A : SEL.bondLength + A);
     });
@@ -606,6 +640,11 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       push('xbal' + i, x.addr, SEL.balanceOf + A);
       if (x.dec === null) push('xdec' + i, x.addr, SEL.decimals);
     });
+    if (cfg.ilo) {
+      push('iloDiscount', cfg.ilo.discount, SEL.depositorBalance + A);
+      push('iloCount', cfg.ilo.lgnsIlo, SEL.depositCount + A);
+      push('idoDai', cfg.ilo.idoLedger, SEL.idoTotalDai + A);
+    }
 
     var btP = blockInfo(chainKey);
     var base = await callMany(chainKey, calls);
@@ -614,8 +653,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     function get(tag) {
       var i = slot[tag];
       if (i === undefined) return undefined;
-      var v = base[i];
-      return v === undefined ? undefined : v; // undefined=网络失败, null=revert, string=数据
+      return base[i];
     }
     function big(tag) { var v = get(tag); return (v === null || v === undefined) ? null : hexToBig(v); }
 
@@ -627,24 +665,27 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     if (wm === null || wm === undefined) res.warmup = null;
     else { var w = words(wm); res.warmup = { raw: w[0] || 0n }; }
 
-    /* ---- 锁仓（计入） ---- */
-    for (var i = 0; i < cfg.locks.length; i++) {
+    /* ---- 长期质押（计入） ---- */
+    for (var i = 0; i < cfg.longLocks.length; i++) {
       var lc = big('lockCount' + i);
       var lt = big('lockTotal' + i);
       if (lt === null && lc === null) continue;               // 合约不可读，忽略
       res.locks.push({
-        label: cfg.locks[i].label, addr: cfg.locks[i].addr,
+        label: cfg.longLocks[i].label, addr: cfg.longLocks[i].addr,
         count: lc === null ? null : Number(lc),
-        principal: lt === null ? null : lt,
+        present: lt === null ? 0n : lt,
         items: []
       });
     }
 
-    /* ---- 其它未计量仓位 ---- */
-    for (var j = 0; j < cfg.others.length; j++) {
-      var ot = big('otherTotal' + j);
-      if (ot === null) continue;
-      res.others.push({ label: cfg.others[j].label, addr: cfg.others[j].addr, principal: ot });
+    /* ---- 其他 LGNS 计价质押（计入） ---- */
+    for (var j = 0; j < cfg.pools.length; j++) {
+      var ot = big('poolTotal' + j);
+      if (ot === null) { res.errors.push(cfg.pools[j].label + ' 读取失败（接口变更或已下线）'); continue; }
+      res.pools.push({
+        label: cfg.pools[j].label, addr: cfg.pools[j].addr,
+        note: cfg.pools[j].note || '', present: ot
+      });
     }
 
     /* ---- 债券 ---- */
@@ -673,7 +714,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       });
     }
 
-    /* ---- 其它资产 ---- */
+    /* ---- 其他资产 ---- */
     for (var x = 0; x < cfg.extras.length; x++) {
       var xb = big('xbal' + x);
       if (xb === null) continue;
@@ -682,9 +723,24 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       res.extras.push({ label: cfg.extras[x].label, sym: cfg.extras[x].sym, raw: xb, dec: xd });
     }
 
-    /* ---- 细节：锁仓逐笔 ---- */
+    /* ---- ILO（仅 Anubis，单独展示、不计入） ---- */
+    if (cfg.ilo) {
+      var ic = big('iloCount');
+      var idoDai = big('idoDai');
+      var idsc = big('iloDiscount');
+      res.ilo = {
+        count: ic === null ? null : Number(ic),
+        lgns: 0n, dai: 0n, records: [],
+        idoDai: idoDai || 0n,
+        discount: idsc === null ? 0n : idsc,      // 创世 360 现值（LGNS，计入）
+        online: idsc !== null,
+        ok: ic !== null || idoDai !== null || idsc !== null
+      };
+    }
+
+    /* ---- 细节：长期质押逐笔 ---- */
     var detail = [];
-    cfg.locks.forEach(function (l, i) {
+    cfg.longLocks.forEach(function (l, ii) {
       var r0 = res.locks.filter(function (o) { return o.addr === l.addr; })[0];
       if (!r0 || !r0.count) return;
       var n = Math.min(r0.count, LIMIT.entries);
@@ -694,7 +750,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       if (r0.count > LIMIT.entries) res.errors.push(l.label + ' 超过 ' + LIMIT.entries + ' 笔，明细未取全');
     });
     /* ---- 细节：债券逐笔 ---- */
-    cfg.bonds.forEach(function (bd, i) {
+    cfg.bonds.forEach(function (bd) {
       var rr = res.bonds.filter(function (o) { return o.addr === bd.addr; })[0];
       if (!rr || !rr.count) return;
       var n = Math.min(rr.count, LIMIT.entries);
@@ -707,6 +763,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         detail.push({ kind: 'bondList', ref: rr, to: bd.addr, data: SEL.bondData + A });
       }
     });
+    /* ---- 细节：ILO 逐笔 ---- */
+    if (cfg.ilo && res.ilo && res.ilo.count) {
+      detail.push({ kind: 'iloList', to: cfg.ilo.lgnsIlo, data: SEL.iloDeposits + A });
+    }
 
     if (detail.length) {
       var det = await callMany(chainKey, detail);
@@ -717,107 +777,162 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
           var w2 = words(raw);
           it.ref.items.push({
             principal: w2[0] || 0n,
+            gons: w2[1] || 0n,
             matBlock: w2[3] || 0n,
             startBlock: w2[5] || 0n,
-            accrued: w2[10] || 0n
+            present: null
           });
         } else if (it.kind === 'burn') {
           var w3 = words(raw);
+          /* Anubis 销毁债券 getUserDeposit 结构：
+             daiValue, capBps, burnedLgns, releasedDaiValue, claimedLgns, ..., mode
+             本金取 burnedLgns(2)；旧版若只有 1 个字段则退化为 w3[0] */
+          var prin = w3.length >= 9 ? (w3[2] || 0n) : (w3[0] || 0n);
           it.ref.deposits[it.index] = it.ref.deposits[it.index] || {};
-          it.ref.deposits[it.index].principal = w3[0] || 0n;
-          it.ref.principal += (w3[0] || 0n);
+          it.ref.deposits[it.index].principal = prin;
+          it.ref.principal += prin;
         } else if (it.kind === 'burnClaim') {
           var v = hexToBig(raw);
           it.ref.deposits[it.index] = it.ref.deposits[it.index] || {};
           it.ref.deposits[it.index].claimable = v;
           it.ref.claimable += v;
-          it.ref.payable = it.ref.claimable;
         } else if (it.kind === 'bondList') {
           var arr = words(raw);
           if (arr.length >= 2) {
             var off2 = Number(arr[0] / 32n), len = Number(arr[off2] || 0n), p = off2 + 1;
-            for (var q = 0; q < len && p + 7 < arr.length; q++, p += 8) {
-              var id = arr[p + 1], payout = arr[p + 2];
+            /* 每条 Bond 的字段数按 ABI 实际长度推导：
+               Polygon 6 字段 (owner,id,payout,vesting,lastBlock,pricePaid)
+               Anubis  8 字段（额外 gons、fee） */
+            var stride = len > 0 ? Math.floor((arr.length - p) / len) : 0;
+            if (stride < 6) stride = 6;
+            for (var q = 0; q < len && p + stride - 1 < arr.length; q++, p += stride) {
               it.ref.deposits.push({
-                id: id, payout: payout, vesting: arr[p + 3], lastBlock: arr[p + 4],
-                pricePaid: arr[p + 5], gons: arr[p + 6] || 0n, value: null
+                id: arr[p + 1], payout: arr[p + 2], vesting: arr[p + 3], lastBlock: arr[p + 4],
+                pricePaid: arr[p + 5], gons: stride > 6 ? (arr[p + 6] || 0n) : 0n, value: null
               });
+            }
+          }
+        } else if (it.kind === 'iloList') {
+          var wr = words(raw);
+          if (wr.length >= 2) {
+            var off = Number(wr[0] / 32n), n2 = Number(wr[off] || 0n), p2 = off + 1;
+            for (var z = 0; z < n2 && p2 + 8 < wr.length; z++, p2 += 9) {
+              var rec = {
+                dai: wr[p2] || 0n, lgns: wr[p2 + 1] || 0n, lp: wr[p2 + 2] || 0n,
+                ts: wr[p2 + 4] || 0n, epoch: wr[p2 + 5] || 0n,
+                reward: wr[p2 + 6] || 0n, claimed: wr[p2 + 7] || 0n, mode: Number(wr[p2 + 8] || 0n)
+              };
+              res.ilo.records.push(rec);
+              res.ilo.lgns += rec.lgns;
+              res.ilo.dai += rec.dai;
             }
           }
         }
       }
-      /* 债券待领额：逐笔 pendingPayoutFor（vesting 结束后才可领） */
-      // 债券逐笔待领（第二次精确回填）
-      await fillBondPending(chainKey, res, A, cfg);
     }
+
+    /* ---- 现值回填：gons -> LGNS（锁仓逐笔、债券逐笔） ---- */
+    var priceJobs = [];
+    res.locks.forEach(function (l) {
+      l.items.forEach(function (it) {
+        if (it.gons > 0n) priceJobs.push({ dp: it, to: cfg.slgns, data: SEL.balanceForGons + u256(it.gons) });
+      });
+    });
+    res.bonds.forEach(function (bb) {
+      if (bb.abi === 'burn') return;
+      bb.deposits.forEach(function (dp) { if (dp && dp.gons > 0n) priceJobs.push({ dp: dp, to: cfg.slgns, data: SEL.balanceForGons + u256(dp.gons) }); });
+    });
+    if (priceJobs.length) {
+      var vals = await callMany(chainKey, priceJobs.map(function (j) { return { to: j.to, data: j.data }; }));
+      priceJobs.forEach(function (j, k) {
+        var v = vals[k];
+        j.dp.present = (v === null || v === undefined) ? null : hexToBig(v);
+        j.dp.value = j.dp.present;
+      });
+    }
+
+    /* ---- 债券应付：普通债券逐笔 pendingPayoutFor，回退 pendingPayout ---- */
+    var payJobs = [], payRefs = [];
+    res.bonds.forEach(function (bb) {
+      if (bb.abi === 'burn') return;
+      bb.deposits.forEach(function (dp) {
+        if (!dp || dp.id === undefined) return;
+        payJobs.push({ to: bb.addr, data: SEL.pendingPayoutFor + A + u256(dp.id) });
+        payRefs.push(dp);
+      });
+    });
+    if (payJobs.length) {
+      var outs = await callMany(chainKey, payJobs);
+      var retry = [];
+      payRefs.forEach(function (dp, i) {
+        var v = outs[i];
+        if (v === null || v === undefined) { retry.push(dp); return; }
+        dp.claimable = hexToBig(v);
+      });
+      if (retry.length) {
+        // 回退：pendingPayout(address,uint256)
+        var altJobs = [];
+        res.bonds.forEach(function (bb) {
+          if (bb.abi === 'burn') return;
+          bb.deposits.forEach(function (dp) {
+            if (dp && retry.indexOf(dp) >= 0) altJobs.push({ dp: dp, to: bb.addr, data: SEL.pendingPayout + A + u256(dp.id) });
+          });
+        });
+        if (altJobs.length) {
+          var altOut = await callMany(chainKey, altJobs.map(function (j) { return { to: j.to, data: j.data }; }));
+          altJobs.forEach(function (j, i) {
+            var v = altOut[i];
+            j.dp.claimable = (v === null || v === undefined) ? 0n : hexToBig(v);
+          });
+        }
+      }
+    }
+
+    /* ---- 债券汇总：应付按 gons 现值优先，其次 pendingPayout ---- */
+    res.bonds.forEach(function (bb) {
+      bb.deposits.forEach(function (dp) {
+        if (!dp) return;
+        var amt = (dp.present !== null && dp.present !== undefined && dp.present > 0n)
+          ? dp.present
+          : ((dp.claimable || 0n) > 0n ? dp.claimable : (dp.payout || 0n));
+        dp.owed = amt;
+        bb.payable += amt;
+        if (bb.abi === 'burn' && bb.claimable > 0n) bb.payable = bb.claimable;
+      });
+      if (bb.abi === 'burn') bb.payable = bb.claimable;
+    });
 
     res.bt = bt;
     return res;
   }
 
-  async function fillBondPending(chain, res, A, cfg) {
-    var jobs = [];
-    res.bonds.forEach(function (bb) {
-      if (bb.abi === 'burn') return;
-      bb.claimable = 0n; bb.payable = 0n;
-      bb.deposits.forEach(function (dp) {
-        jobs.push({ dp: dp, to: bb.addr, data: SEL.pendingPayoutFor + A + u256(dp.id) });
-      });
-    });
-    if (!jobs.length) return;
-    var out = await callMany(chain, jobs.map(function (j) { return { to: j.to, data: j.data }; }));
-    jobs.forEach(function (j, i) {
-      var v = out[i] === null || out[i] === undefined ? 0n : hexToBig(out[i]);
-      j.dp.claimable = v;
-    });
-
-    /* 债券应付按 gons 现值折算（gons 随 rebase 增长，payout 只是存入时的快照） */
-    var gj = [];
-    res.bonds.forEach(function (bb) {
-      if (bb.abi === 'burn') return;
-      bb.deposits.forEach(function (dp) { if (dp && dp.gons > 0n) gj.push(dp); });
-    });
-    var vals = gj.length
-      ? await callMany(chain, gj.map(function (dp) { return { to: cfg.slgns, data: SEL.balanceForGons + u256(dp.gons) }; }))
-      : [];
-    gj.forEach(function (dp, i) {
-      var v = vals[i];
-      dp.value = (v === null || v === undefined) ? null : hexToBig(v);
-    });
-
-    res.bonds.forEach(function (bb) {
-      if (bb.abi === 'burn') return;
-      bb.deposits.forEach(function (dp) {
-        if (!dp) return;
-        var amt = (dp.value !== null && dp.value > 0n) ? dp.value : (dp.payout || 0n);
-        dp.owed = amt;
-        bb.payable += amt;
-        bb.claimable += (dp.claimable || 0n);
-      });
-    });
-  }
-
   /* ========================================================================
      4. 汇总口径
      ====================================================================== */
-  function lockPrincipal(c) {
-    return c.locks.reduce(function (s, l) { return s + (l.principal || 0n); }, 0n);
+  function lockPresent(c) {
+    return c.locks.reduce(function (s, l) { return s + (l.present || 0n); }, 0n);
   }
   function lockAccrued(c) {
     var t = 0n;
-    c.locks.forEach(function (l) { (l.items || []).forEach(function (it) { t += it.accrued || 0n; }); });
+    c.locks.forEach(function (l) {
+      (l.items || []).forEach(function (it) {
+        var v = (it.present === null || it.present === undefined) ? null : it.present;
+        if (v === null) return;                 // gons 读不到时不算收益，避免虚增
+        var diff = v - (it.principal || 0n);
+        if (diff > 0n) t += diff;
+      });
+    });
     return t;
   }
+  function poolPresent(c) { return (c.pools || []).reduce(function (s, o) { return s + (o.present || 0n); }, 0n); }
   // 债券：合约记录的应付 LGNS（销毁债券按 getClaimable）
   function bondPayable(c) { return c.bonds.reduce(function (s, b) { return s + (b.payable || 0n); }, 0n); }
   function rewardSum(c) { return c.rewards.reduce(function (s, r) { return s + (r.raw || 0n); }, 0n); }
-  // 持仓：钱包 + sLGNS + 预热质押期 + 锁仓现值（锁仓现值 = ΣbalanceForGons(gons)，已含已产生收益）
-  function otherPrincipal(c) {
-    return (c.others || []).reduce(function (s2, o) { return s2 + (o.principal || 0n); }, 0n);
-  }
+  // 持仓：钱包 + sLGNS + 预热质押期 + 长期质押现值 + 其他 LGNS 质押现值
+  function iloDiscount(c) { return (c.ilo && c.ilo.discount) ? c.ilo.discount : 0n; }
   function holdings(c) {
     return (c.lgns ? c.lgns.raw : 0n) + (c.flex ? c.flex.raw : 0n) +
-           (c.warmup ? c.warmup.raw : 0n) + lockPrincipal(c) + otherPrincipal(c);
+           (c.warmup ? c.warmup.raw : 0n) + lockPresent(c) + poolPresent(c) + iloDiscount(c);
   }
   // 总币量 = 持仓（含锁仓收益） + 债券应付 + 其它合约待领
   function chainTotal(c) { return holdings(c) + bondPayable(c) + rewardSum(c); }
@@ -865,34 +980,44 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       { zero: c.flex && c.flex.raw === 0n, sub: '随 rebase 增长，1:1 计 LGNS' });
     h += row('预热质押期', fmt(c.warmup ? c.warmup.raw : null, 9), 'LGNS',
       { sub: '已质押、尚未转为 sLGNS', zero: c.warmup && c.warmup.raw === 0n });
-    h += row('锁仓现值', fmt(lockPrincipal(c), 9), 'LGNS',
-      { cls: 'sum', sub: '按 gons 折算，已含锁仓内产生的收益', title: exact(lockPrincipal(c), 9) + ' LGNS' });
+    /* 长期质押与其他质押合并为一行「质押现值」 */
+    var stakePresent = lockPresent(c) + poolPresent(c);
+    h += row('质押现值', fmt(stakePresent, 9), 'LGNS', {
+      cls: 'sum',
+      sub: (cfg.key === 'polygon'
+        ? '长期质押（gons 折算，已含锁仓收益）+ 能量额度质押 / A Stake'
+        : '长期质押（gons 折算，已含锁仓收益）+ 即时 / 债券 / 能量点数')
+        + (cfg.ilo ? '（创世 360 见 ILO 组）' : ''),
+      title: '长期质押 ' + exact(lockPresent(c), 9) + ' + 其他质押 ' + exact(poolPresent(c), 9) + ' = ' + exact(stakePresent, 9) + ' LGNS'
+    });
     h += '</div>';
 
-    /* 锁仓明细 */
-    var activeLocks = c.locks.filter(function (l) { return (l.principal || 0n) > 0n || l.items.length; });
+    /* 长期质押明细 */
+    var activeLocks = c.locks.filter(function (l) { return (l.present || 0n) > 0n || l.items.length; });
     if (activeLocks.length) {
-      h += '<details><summary>锁仓明细 <span class="m">' + activeLocks.length + ' 项 · ' +
+      h += '<details><summary>长期质押明细 <span class="m">' + activeLocks.length + ' 项 · ' +
         activeLocks.reduce(function (s, l) { return s + (l.count || 0); }, 0) + ' 笔</span></summary><div class="dbody">';
       activeLocks.forEach(function (l) {
-        var acc = (l.items || []).reduce(function (s2, it) { return s2 + (it.accrued || 0n); }, 0n);
         h += '<div class="lock"><div class="lock-h"><span>' + esc(l.label) + '</span>' +
-          '<span class="m" title="' + esc(exact(l.principal || 0n, 9)) + ' LGNS">现值 ' + fmt(l.principal, 9) +
+          '<span class="m" title="' + esc(exact(l.present || 0n, 9)) + ' LGNS">现值 ' + fmt(l.present, 9) +
           ' · ' + (l.count || 0) + ' 笔</span></div>';
         if (l.items.length) {
           var live = [], closed = 0;
           l.items.forEach(function (it, i) {
-            if (it.principal === 0n && it.accrued === 0n) { closed++; return; }
+            if ((it.principal || 0n) === 0n && (it.gons || 0n) === 0n) { closed++; return; }
             live.push({ it: it, i: i });
           });
           live.forEach(function (o) {
-            var it = o.it, md = matDate(it.matBlock, c.bt), dl = daysLeft(it.matBlock, c.bt);
+            var it = o.it, md = expiryDate(it.matBlock, c.bt), dl = expiryDays(it.matBlock, c.bt);
             var when = md ? (dl !== null && dl < 0
               ? '已于 ' + md + ' 到期'
               : '到期 ' + md + (dl !== null ? ' · 剩 ' + dl + ' 天' : '')) : '';
+            var pres = (it.present === null || it.present === undefined) ? null : it.present;
+            var gain = pres === null ? null : (pres - (it.principal || 0n));
             h += '<div class="ent"><span>#' + (o.i + 1) + ' 本金 <b>' + fmt(it.principal, 9) + '</b> ' +
+              (pres !== null ? '· 现值 <b>' + fmt(pres, 9) + '</b> ' : '') +
               (when ? '<span style="color:#8aa3ba"> · ' + when + '</span>' : '') + '</span>' +
-              '<span class="rr">已计息 <b>' + fmt(it.accrued, 9) + '</b></span></div>';
+              '<span class="rr">已计息 <b>' + fmt(gain, 9) + '</b></span></div>';
           });
           if (closed) {
             h += '<div class="ent" style="border-left-color:rgba(140,200,255,.10);color:#7e94a9">' +
@@ -906,6 +1031,56 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       h += '</div></details>';
     }
 
+    /* 其他质押（计入） */
+    if (c.pools.length) {
+      h += '<details><summary>' + (cfg.key === 'polygon' ? '能量额度 / A Stake（计入）' : '其他质押（计入）') +
+        ' <span class="m">' + fmt(poolPresent(c), 9) + '</span></summary><div class="dbody">';
+      c.pools.forEach(function (o) {
+        h += row(esc(o.label), fmt(o.present, 9), 'LGNS', {
+          zero: o.present === 0n,
+          sub: o.note || 'getDepositorBalance 现值'
+        });
+      });
+      h += '<div class="note" style="margin:6px 0 0">' + (cfg.key === 'polygon'
+        ? '这组产品都属于「质押 LGNS 类」仓位：<b>能量额度质押</b>用 LGNS 换能量额度（额度再用于铸造 A），<b>A Stake</b> 里 120/240/360 天用 DAI 申购、'
+          + '360 天那档直接用 LGNS，合约内部以 LGNS（gons）记账，所以按 getDepositorBalance 的 LGNS 现值计入总量。'
+        : 'Anubis 的即时质押、债券质押、能量点数都在官网「我的仓位」里以 getDepositorBalance 计价，单位与 LGNS 一致，因此计入总量；'
+          + '<b>创世 360</b> 按官网位于 ILO 页，已移到下方 ILO 分组里单列（同样计入）。') +
+        '</div>';
+      h += '</div></details>';
+    }
+
+    /* ILO（仅 Anubis）：官网 /ilo 页 = 创世 360 + ILO(LGNS) + ILO(DAI) */
+    if (cfg.ilo && c.ilo) {
+      var ilo = c.ilo;
+      var hasAny = (ilo.count || 0) > 0 || ilo.idoDai > 0n || (ilo.discount || 0n) > 0n;
+      h += '<details><summary>ILO（Anubis · 创世 360 计入 / 申购不计入） <span class="m">' +
+        (hasAny
+          ? ((ilo.discount || 0n) > 0n ? '创世 ' + fmt(ilo.discount, 9) : '无创世仓位') +
+            ' · ' + (ilo.count || 0) + ' 笔 LGNS 申购' + (ilo.idoDai > 0n ? ' · DAI 已申购' : '')
+          : '无记录') +
+        '</span></summary><div class="dbody">';
+      h += row('创世 360（Discount Staking）', fmt(ilo.discount, 9), 'LGNS', {
+        zero: (ilo.discount || 0n) === 0n,
+        sub: 'DAI 折价申购 LGNS，协议储备补贴额外 LGNS · getDepositorBalance 现值'
+      });
+      h += row('ILO（LGNS 申购）笔数', String(ilo.count || 0), '笔', { zero: !ilo.count });
+      h += row('ILO（LGNS 申购）累计 LGNS', fmt(ilo.lgns, 9), 'LGNS', { zero: ilo.lgns === 0n,
+        sub: 'ILO 合约 getUserDeposits 记录' });
+      h += row('ILO（DAI 申购）累计 DAI', fmt(ilo.idoDai, 18), 'DAI', { zero: ilo.idoDai === 0n,
+        sub: 'ILO Ledger contract totalDaiDeposited' });
+      (ilo.records || []).slice(-10).reverse().forEach(function (rec, i) {
+        var when = rec.ts ? new Date(Number(rec.ts) * 1000).toISOString().slice(0, 10) : '';
+        h += '<div class="ent"><span>#' + (i + 1) + ' ' + (when ? when + ' · ' : '') +
+          'LGNS <b>' + fmt(rec.lgns, 9) + '</b>' + (rec.dai > 0n ? ' · DAI <b>' + fmt(rec.dai, 18) + '</b>' : '') +
+          '</span><span class="rr">奖励 <b>' + fmt(rec.reward, 9) + '</b></span></div>';
+      });
+      h += '<div class="note" style="margin:6px 0 0">官网 <b>/ilo</b> 页面由三块组成：<b>创世 360</b>（Discount Staking，DAI 折价申购 LGNS）+ <b>ILO(LGNS)</b> + <b>ILO(DAI)</b>。' +
+        '其中创世 360 是 LGNS 计价仓位，按 getDepositorBalance 现值<b>计入</b>本链总币量；两个 ILO 是<b>申购额度</b>，只展示、不计入。' +
+        'Polygon 端没有 ILO（也没有创世 360）。</div>';
+      h += '</div></details>';
+    }
+
     /* 债券 */
     if (c.bonds.length) {
       var heldBonds = c.bonds.filter(function (b) { return b.count > 0; });
@@ -913,32 +1088,39 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
         (heldBonds.length ? fmt(gold, 9) + ' LGNS' : c.bonds.length + ' 类 · 无持仓') + '</span></summary><div class="dbody">';
       if (!heldBonds.length) {
         h += '<div class="ent" style="border-left-color:rgba(140,200,255,.12)"><span>已核对 ' + c.bonds.length +
-          ' 类债券合约（30/60/120/240/360/600 天 DAI、USDT、WBTC、wETH、LP 系列），当前无存入。</span></div>';
+          ' 类债券合约（' + cfg.name + ' 端：' +
+          (cfg.key === 'polygon'
+            ? 'DAI 30/60/120/240/360/600 天、DAI 固定期、USDT、WBTC、wETH、LP 30/60/120/240/360/600 天 + LP'
+            : '销毁债券、固定价销毁债券') +
+          '），当前无存入。</span></div>';
       }
       heldBonds.forEach(function (b) {
         h += '<div class="lock"><div class="lock-h"><span>' + esc(b.label) + '</span>' +
           '<span class="m">' + b.count + ' 笔 · 应付 ' + fmt(b.payable, 9) + ' LGNS</span></div>';
         if (b.principal > 0n) {
-          h += '<div class="ent"><span>存入本金 <b>' + fmt(b.principal, b.dec) + '</b> ' + esc(b.sym) + '</span>' +
+          h += '<div class="ent"><span>存入本金 <b>' + (b.abi === 'burn'
+            ? fmt(b.principal, 9) + ' LGNS（已销毁）'
+            : fmt(b.principal, b.dec) + ' ' + esc(b.sym)) + '</b></span>' +
             '<span class="rr">可领 <b>' + fmt(b.claimable, 9) + '</b> LGNS</span></div>';
         }
         b.deposits.forEach(function (d, i) {
           if (!d) return;
           var owed = (d.owed !== undefined && d.owed !== null) ? d.owed : (d.claimable || 0n);
           h += '<div class="ent" style="border-left-color:rgba(140,200,255,.08)"><span>#' + (i + 1) +
-            ' 存入 ' + (b.abi === 'burn' ? fmt(d.principal, b.dec) + ' ' + esc(b.sym) : fmt(d.payout, 9) + ' LGNS') +
+            ' 存入 ' + (b.abi === 'burn' ? fmt(d.principal, 9) + ' LGNS' : fmt(d.payout, 9) + ' LGNS') +
             '</span><span class="rr">应付 <b>' + fmt(owed, 9) + '</b></span></div>';
         });
         h += '</div>';
       });
       h += '<div class="note" style="margin:6px 0 0">债券（DAI 本位 / 固定价值）支付的 LGNS 与钱包持仓相互独立，' +
-        '领取不会减少任何持仓，因此计入总币量。</div>';
+        '领取不会减少任何持仓，因此计入总币量；销毁债券按 getClaimable 的应付 LGNS 计，本金只作展示，避免重复相加。</div>';
       h += '</div></details>';
     }
 
     /* 其它合约待领（计入） */
     if (c.rewards.length) {
-      h += '<details><summary>涡轮 / 蜘蛛网 / DAO 奖励（计入） <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
+      h += '<details><summary>' + (cfg.key === 'polygon' ? '涡轮 / 蜘蛛网 / 社区奖励（计入）' : '涡轮 / 蜘蛛网 / DAO 奖励（计入）') +
+        ' <span class="m">' + fmt(rw, 9) + '</span></summary><div class="dbody">';
       c.rewards.forEach(function (r) {
         h += row(esc(r.label), fmt(r.raw, 9), 'LGNS', {
           zero: r.raw === 0n,
@@ -955,28 +1137,13 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       h += '</div></details>';
     }
 
-    /* 锁仓已计息：仅参考 */
+    /* 长期质押已计息：仅参考 */
     if (lockAccrued(c) > 0n) {
-      h += '<details><summary>锁仓已计息（仅参考，不叠加） <span class="m">' + fmt(lockAccrued(c), 9) + '</span></summary><div class="dbody">';
-      h += row('锁仓累计产生收益', fmt(lockAccrued(c), 9), 'LGNS',
-        { sub: '已折算进上方「锁仓现值」，再相加会重复' });
+      h += '<details><summary>长期质押已计息（仅参考，不叠加） <span class="m">' + fmt(lockAccrued(c), 9) + '</span></summary><div class="dbody">';
+      h += row('逐笔现值 − 本金 合计', fmt(lockAccrued(c), 9), 'LGNS',
+        { sub: '已折算进上方「长期质押现值」，再相加会重复' });
       h += '<div class="note" style="margin:6px 0 0">锁仓按 gons 计息，收益实时长进 gons，领取会减少 gons、现值随之下降。' +
         '因此这部分只作参考，不再加到总币量里。</div>';
-      h += '</div></details>';
-    }
-
-    /* ILO / 其他质押（计入） */
-    if (c.others.length) {
-      var op = otherPrincipal(c);
-      h += '<details><summary>ILO / 其他质押（计入） <span class="m">' + fmt(op, 9) + '</span></summary><div class="dbody">';
-      c.others.forEach(function (o) {
-        h += row(esc(o.label), fmt(o.principal, 9), 'LGNS', {
-          zero: o.principal === 0n,
-          sub: 'getDepositorBalance 现值'
-        });
-      });
-      h += '<div class="note" style="margin:6px 0 0">ILO 系列（A 币 120/240/360 天、A 币代币质押、金库、折扣/即时/积分质押）的仓位同样是 LGNS 计价，' +
-        '已按合约现值计入本链总币量。</div>';
       h += '</div></details>';
     }
 
@@ -987,11 +1154,13 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
     (nz.length ? nz : c.extras).forEach(function (x) {
       h += row(esc(x.label), fmt(x.raw, x.dec), esc(x.sym), { zero: x.raw === 0n });
     });
-    if (nz.length) h += '<div class="note">另有 ' + (c.extras.length - nz.length) + ' 种已核对的代币余额为 0（DAI / USDT / WBTC / wETH / A / LP 等），非 LGNS 资产不计入总量。</div>';
+    if (nz.length) h += '<div class="note">另有 ' + (c.extras.length - nz.length) + ' 种已核对的代币余额为 0（' +
+      (cfg.key === 'polygon' ? 'DAI / USDT / WBTC / wETH / OUSD(A) / LP' : 'DAI / GLGNS') +
+      '），非 LGNS 资产不计入总量。</div>';
     h += '</div></details>';
 
-    var checked = (cfg.locks.length + cfg.others.length + cfg.bonds.length + cfg.rewards.length + cfg.extras.length + 3);
-    var readable = (c.locks.length + c.others.length + c.bonds.length + c.rewards.length + c.extras.length + 3);
+    var checked = 3 + cfg.longLocks.length + cfg.pools.length + cfg.bonds.length + cfg.rewards.length + cfg.extras.length + (cfg.ilo ? 3 : 0);
+    var readable = 3 + c.locks.length + c.pools.length + c.bonds.length + c.rewards.length + c.extras.length + (cfg.ilo ? 3 : 0);
     h += '<div class="note">已核对 ' + cfg.name + ' 上 ' + checked + ' 个合约接口（含 0 余额项），可读 ' + readable +
       ' 个；不可读的通常已下线或接口变更，不会计入总量。</div>';
     if (c.errors.length) h += '<div class="errbox">' + esc(c.errors.join('；')) + '</div>';
@@ -1016,20 +1185,21 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
   }
 
   function render(wallets) {
-    var P = 0n, A = 0n, goldP = 0n, goldA = 0n, rwAll = 0n, free = 0n, flex = 0n, warm = 0n, lock = 0n, iloAll = 0n;
+    var P = 0n, A = 0n, goldP = 0n, goldA = 0n, rwAll = 0n, free = 0n, flex = 0n, warm = 0n, lock = 0n, pool = 0n, discAll = 0n;
     wallets.forEach(function (w) {
       var p = w.chains[0], a = w.chains[1];
       P += holdings(p); A += holdings(a);
-      iloAll += otherPrincipal(p) + otherPrincipal(a);
+      pool += poolPresent(p) + poolPresent(a);
+      discAll += iloDiscount(p) + iloDiscount(a);
       goldP += bondPayable(p); goldA += bondPayable(a);
       rwAll += rewardSum(p) + rewardSum(a);
       free += (p.lgns ? p.lgns.raw : 0n) + (a.lgns ? a.lgns.raw : 0n);
       flex += (p.flex ? p.flex.raw : 0n) + (a.flex ? a.flex.raw : 0n);
       warm += (p.warmup ? p.warmup.raw : 0n) + (a.warmup ? a.warmup.raw : 0n);
-      lock += lockPrincipal(p) + lockPrincipal(a);
+      lock += lockPresent(p) + lockPresent(a);
     });
     var hold = P + A, gold = goldP + goldA, total = hold + gold + rwAll;
-    var chainP = P + goldP + rewardSum(wallets[0].chains[0]), chainA = A + goldA + rewardSum(wallets[0].chains[1]);
+    var chainP = walletChainTotal(wallets, 0), chainA = walletChainTotal(wallets, 1);
 
     var h = '';
     h += '<div class="hero">' +
@@ -1037,11 +1207,12 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
       (wallets.length > 1 ? '<i class="n">' + wallets.length + ' 个钱包</i>' : '') + '</div>' +
       '<div class="v" title="' + esc(exact(total, 9)) + '">' + fmt2(total, 9) + '<small>LGNS</small></div>' +
       '<div class="eq">钱包 ' + fmt(free, 9) + ' + 活期 ' + fmt(flex, 9) + ' + 预热质押期 ' + fmt(warm, 9) +
-      ' + 锁仓现值 ' + fmt(lock, 9) + (iloAll > 0n ? ' + ILO ' + fmt(iloAll, 9) : '') + (gold > 0n ? ' + 债券 ' + fmt(gold, 9) : '') +
-      (rwAll > 0n ? ' + 涡轮等待领 ' + fmt(rwAll, 9) : '') + '</div></div>' +
+      ' + 质押现值 ' + fmt(lock + pool, 9) +
+      (discAll > 0n ? ' + 创世360 ' + fmt(discAll, 9) : '') + (gold > 0n ? ' + 债券 ' + fmt(gold, 9) : '') +
+      (rwAll > 0n ? ' + 奖励待领 ' + fmt(rwAll, 9) : '') + '</div></div>' +
       '<div class="hero-side">' +
       '<div class="mini"><span>其中持仓</span><b>' + fmt(hold, 9) + '</b></div>' +
-      '<div class="mini mute"><span>债券 / 涡轮等待领</span><b>' + fmt(gold + rwAll, 9) + '</b></div>' +
+      '<div class="mini mute"><span>债券 / 奖励待领</span><b>' + fmt(gold + rwAll, 9) + '</b></div>' +
       '</div>' +
       '<div class="split">' +
       '<div class="bar"><div class="t"><span>Polygon</span><b>' + fmt(chainP, 9) + '</b></div><div class="track"><div class="fill" style="width:' + pct(chainP, total) + '%"></div></div></div>' +
@@ -1050,6 +1221,11 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
     wallets.forEach(function (w, i) { h += walletBlock(w, i, wallets.length); });
     return h;
+  }
+  function walletChainTotal(wallets, idx) {
+    var t = 0n;
+    wallets.forEach(function (w) { t += chainTotal(w.chains[idx]); });
+    return t;
   }
   function pct(a, b) {
     if (!b) return 0;
@@ -1062,7 +1238,7 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
      ====================================================================== */
   var $ = function (id) { return document.getElementById(id); };
   var state = { busy: false, last: null };
-  var WKEY = 'lgns_holdings_wallets_v2';
+  var WKEY = 'lgns_holdings_wallets_v3';
 
   function parseAddrs(text) {
     var raw = String(text || '').split(/[\s,;，；、]+/).filter(Boolean);
@@ -1191,10 +1367,10 @@ details>summary .m{margin-left:auto;font:600 12px var(--mono);color:#d9ecff}
 
   if (typeof document !== 'undefined' && document.getElementById('addr')) init();
   if (typeof window !== 'undefined') {
-    window.__WQ = { queryWallet: queryWallet, holdings: holdings, bondPayable: bondPayable, rewardSum: rewardSum, chainTotal: chainTotal, otherPrincipal: otherPrincipal, fmt: fmt, CHAINS: CHAINS, render: render };
+    window.__WQ = { queryWallet: queryWallet, holdings: holdings, bondPayable: bondPayable, rewardSum: rewardSum, chainTotal: chainTotal, poolPresent: poolPresent, lockPresent: lockPresent, fmt: fmt, CHAINS: CHAINS, render: render };
   }
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { queryWallet: queryWallet, holdings: holdings, bondPayable: bondPayable, rewardSum: rewardSum, chainTotal: chainTotal, lockPrincipal: lockPrincipal, lockAccrued: lockAccrued, otherPrincipal: otherPrincipal, fmt: fmt, CHAINS: CHAINS };
+    module.exports = { queryWallet: queryWallet, holdings: holdings, bondPayable: bondPayable, rewardSum: rewardSum, chainTotal: chainTotal, lockPresent: lockPresent, lockAccrued: lockAccrued, poolPresent: poolPresent, fmt: fmt, CHAINS: CHAINS, render: render };
   }
 })();
 </script>
