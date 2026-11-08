@@ -104,6 +104,7 @@ h1 em{font-style:normal}
   box-shadow:var(--fill-glow,none)}
 
 /* ---------- 钱包 ---------- */
+.nb{white-space:nowrap}
 .wallet{margin-top:18px}
 .wbody{display:none}
 .wallet.open .wbody{display:block}
@@ -145,7 +146,7 @@ h1 em{font-style:normal}
   border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 8px;background:var(--chip)}
 
 /* ---------- 小节 / 行 ---------- */
-.sec{margin-top:12px;padding:2px 14px 4px}
+.sec{margin-top:12px;padding:2px 12px 4px}
 .sec-h{display:flex;align-items:center;gap:8px;padding:11px 0 3px;
   font:650 9.5px/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .sec-h .hint{margin-left:auto;font:600 8.5px/1 var(--mono);letter-spacing:.08em;text-transform:none;
@@ -155,8 +156,11 @@ h1 em{font-style:normal}
 .row:last-child{border-bottom:0}
 .row .l{font-size:12.8px;color:var(--tx-2);min-width:0}
 .row .l small{display:block;margin-top:2px;font-size:10.5px;line-height:1.5;color:var(--dim)}
-.row .r{font:600 13px/1.4 var(--mono);color:var(--tx);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
-.row .r em{font-style:normal;margin-left:5px;font:500 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--dim)}
+.row .r{display:inline-flex;align-items:baseline;justify-content:flex-end;gap:0;
+  font:600 13px/1.4 var(--mono);color:var(--tx);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+/* 单位固定槽：单位宽度不同（LGNS / USDT / 笔…）时数字仍然落在同一条右对齐线 */
+.row .r em{font-style:normal;flex:0 0 auto;min-width:3.5em;margin-left:.45em;text-align:left;
+  font:500 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--dim)}
 .row.sum .l{font-weight:650;color:var(--tx)}
 .row.sum .r{color:var(--acc-2);font-weight:750;font-size:14px}
 .row.zero .l,.row.zero .r{color:var(--faint)}
@@ -172,12 +176,13 @@ details>summary::before{content:"";flex:0 0 auto;width:5px;height:5px;margin:0 3
   border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);
   transform:rotate(-45deg);transition:transform .24s,border-color .2s}
 details[open]>summary::before{transform:rotate(45deg);border-color:var(--acc)}
-details>summary .m{margin-left:auto;font:500 10.5px/1.3 var(--mono);color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+details>summary .m{margin-left:auto;flex:0 0 auto;white-space:nowrap;font:500 10.5px/1.3 var(--mono);color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
 .dbody{padding:2px 12px 10px}
 .lock{padding:10px 0;border-top:1px solid var(--line)}
 .lock:first-child{border-top:0;padding-top:2px}
 .lock-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px;font-size:12px;color:var(--tx-2)}
-.lock-h .m{font:500 10.5px/1.4 var(--mono);color:var(--dim);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.lock-h>span:first-child{min-width:0}
+.lock-h .m{flex:0 0 auto;font:500 10.5px/1.4 var(--mono);color:var(--dim);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
 .ent{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:12px;
   padding:5px 0;font-size:11px;color:var(--dim);line-height:1.55}
 .ent b{font-family:var(--mono);font-weight:600;color:var(--tx-2);font-variant-numeric:tabular-nums}
@@ -371,7 +376,7 @@ h1 em{background:linear-gradient(94deg,#ffd79a,#ffb347 42%,#ff7a59 72%,#4fe3cf);
 .hero .k i.n{color:var(--dim);border-color:var(--line);background:transparent}
 .hero .v{color:#f7fdff;text-shadow:0 0 24px rgba(79,227,207,.22)}
 .hero .v small{color:var(--acc);text-shadow:0 0 14px rgba(255,179,71,.35)}
-.hero .eq{color:var(--dim)}
+.hero .eq{color:var(--dim);word-break:keep-all}
 .mini,.bar{border-radius:3px;background:rgba(255,179,71,.03);border-color:var(--line);box-shadow:none}
 .mini b{color:#fff}
 .bar .t{color:var(--dim)}
@@ -1230,14 +1235,16 @@ details>summary .m{color:var(--dim)}
           });
           live.forEach(function (o) {
             var it = o.it, md = expiryDate(it.matBlock, c.bt), dl = expiryDays(it.matBlock, c.bt);
-            var when = md ? (dl !== null && dl < 0
-              ? '已于 ' + md + ' 到期'
-              : '到期 ' + md + (dl !== null ? ' · 剩 ' + dl + ' 天' : '')) : '';
             var pres = (it.present === null || it.present === undefined) ? null : it.present;
             var gain = pres === null ? null : (pres - (it.principal || 0n));
-            h += '<div class="ent"><span>#' + (o.i + 1) + ' 本金 <b>' + fmt(it.principal, 9) + '</b> ' +
-              (pres !== null ? '· 现值 <b>' + fmt(pres, 9) + '</b> ' : '') +
-              (when ? '<span class="when"> · ' + when + '</span>' : '') + '</span>' +
+            /* 分段拼接：分隔点只允许在 “· ” 之后断行，日期/剩余天数/金额不会被拆开 */
+            var segs = ['<span class="nb">本金 <b>' + fmt(it.principal, 9) + '</b></span>'];
+            if (pres !== null) segs.push('<span class="nb">现值 <b>' + fmt(pres, 9) + '</b></span>');
+            var whenHtml = !md ? '' : (dl !== null && dl < 0
+              ? ' <span class="when nb">已于 ' + md + ' 到期</span>'
+              : ' <span class="when nb">到期 ' + md +
+                (dl !== null ? ' · 剩 ' + dl + ' 天' : '') + '</span>');
+            h += '<div class="ent"><span>#' + (o.i + 1) + ' ' + segs.join('\u00a0· ') + whenHtml + '</span>' +
               '<span class="rr"><i>已计息</i><b>' + fmt(gain, 9) + '</b></span></div>';
           });
           if (closed) {
@@ -1280,8 +1287,11 @@ details>summary .m{color:var(--dim)}
       h += row('ILO（DAI 申购）累计 DAI', fmt(ilo.idoDai, 18), 'DAI', { zero: ilo.idoDai === 0n });
       (ilo.records || []).slice(-10).reverse().forEach(function (rec, i) {
         var when = rec.ts ? new Date(Number(rec.ts) * 1000).toISOString().slice(0, 10) : '';
-        h += '<div class="ent"><span>#' + (i + 1) + ' ' + (when ? when + ' · ' : '') +
-          'LGNS <b>' + fmt(rec.lgns, 9) + '</b>' + (rec.dai > 0n ? ' · DAI <b>' + fmt(rec.dai, 18) + '</b>' : '') +
+        var rsegs = [];
+        if (when) rsegs.push('<span class="nb">' + when + '</span>');
+        rsegs.push('<span class="nb">LGNS <b>' + fmt(rec.lgns, 9) + '</b></span>');
+        if (rec.dai > 0n) rsegs.push('<span class="nb">DAI <b>' + fmt(rec.dai, 18) + '</b></span>');
+        h += '<div class="ent"><span>#' + (i + 1) + ' ' + rsegs.join('\u00a0· ') +
           '</span><span class="rr"><i>奖励</i><b>' + fmt(rec.reward, 9) + '</b></span></div>';
       });
       h += '</div></details>';
@@ -1300,16 +1310,16 @@ details>summary .m{color:var(--dim)}
           '<span class="m">' + b.count + ' 笔 · 应付 ' + fmt(b.payable, 9) + '</span></div>';
         if (b.principal > 0n) {
           h += '<div class="ent"><span>存入本金 <b>' + (b.abi === 'burn'
-            ? fmt(b.principal, 9) + ' LGNS（已销毁）'
+            ? fmt(b.principal, 9) + ' LGNS<span class="nb">（已销毁）</span>'
             : fmt(b.principal, b.dec) + ' ' + esc(b.sym)) + '</b></span>' +
             '<span class="rr"><i>可领</i><b>' + fmt(b.claimable, 9) + '</b></span></div>';
         }
         b.deposits.forEach(function (d, i) {
           if (!d) return;
           var owed = (d.owed !== undefined && d.owed !== null) ? d.owed : (d.claimable || 0n);
-          h += '<div class="ent ent-sub"><span>#' + (i + 1) +
-            ' 存入 ' + (b.abi === 'burn' ? fmt(d.principal, 9) + ' LGNS' : fmt(d.payout, 9) + ' LGNS') +
-            '</span><span class="rr"><i>应付</i><b>' + fmt(owed, 9) + '</b></span></div>';
+          h += '<div class="ent ent-sub"><span>#' + (i + 1) + ' <span class="nb">存入 ' +
+            (b.abi === 'burn' ? fmt(d.principal, 9) + ' LGNS' : fmt(d.payout, 9) + ' LGNS') +
+            '</span></span><span class="rr"><i>应付</i><b>' + fmt(owed, 9) + '</b></span></div>';
         });
         h += '</div>';
       });
@@ -1396,10 +1406,10 @@ details>summary .m{color:var(--dim)}
       '<div><div class="k">总币量 <i>持仓 + 债券 + 奖励</i>' +
       (wallets.length > 1 ? '<i class="n">' + wallets.length + ' 个钱包</i>' : '') + '</div>' +
       '<div class="v" title="' + esc(exact(total, 9)) + '">' + fmt2(total, 9) + '<small>LGNS</small></div>' +
-      '<div class="eq">钱包 ' + fmt(free, 9) + ' + 活期 ' + fmt(flex, 9) + ' + 预热质押期 ' + fmt(warm, 9) +
-      ' + 质押现值 ' + fmt(lock + pool, 9) +
-      (discAll > 0n ? ' + 创世360 ' + fmt(discAll, 9) : '') + (gold > 0n ? ' + 债券 ' + fmt(gold, 9) : '') +
-      (rwAll > 0n ? ' + 奖励待领 ' + fmt(rwAll, 9) : '') + '</div></div>' +
+      '<div class="eq">钱包\u00a0' + fmt(free, 9) + ' + 活期\u00a0' + fmt(flex, 9) + ' + 预热质押期\u00a0' + fmt(warm, 9) +
+      ' + 质押现值\u00a0' + fmt(lock + pool, 9) +
+      (discAll > 0n ? ' + 创世360\u00a0' + fmt(discAll, 9) : '') + (gold > 0n ? ' + 债券\u00a0' + fmt(gold, 9) : '') +
+      (rwAll > 0n ? ' + 奖励待领\u00a0' + fmt(rwAll, 9) : '') + '</div></div>' +
       '<div class="hero-side">' +
       '<div class="mini"><span>其中持仓</span><b>' + fmt(hold, 9) + '</b></div>' +
       '<div class="mini mute"><span>债券 / 奖励待领</span><b>' + fmt(gold + rwAll, 9) + '</b></div>' +
