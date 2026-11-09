@@ -39,6 +39,25 @@ body::after{
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.55'/></svg>");
 }
 
+.beam{
+  position:fixed;left:0;right:0;top:0;height:1px;z-index:3;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,179,71,.30) 28%,rgba(255,214,170,.62) 50%,rgba(255,179,71,.30) 72%,transparent);
+  box-shadow:0 0 26px 6px rgba(255,150,40,.08);
+  animation:beam 12s cubic-bezier(.45,0,.55,1) infinite;
+}
+@keyframes beam{0%{transform:translateY(-4vh);opacity:0}10%{opacity:.55}55%{opacity:.75}92%{opacity:.35}100%{transform:translateY(104vh);opacity:0}}
+
+/* 背景巨型刻度环 */
+.stage::before{
+  content:"";position:fixed;left:50%;top:50%;width:min(128vmin,1080px);aspect-ratio:1;
+  transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;z-index:-2;opacity:.55;
+  border:1px solid rgba(255,179,71,.045);
+  background:repeating-conic-gradient(from 0deg,rgba(255,179,71,.075) 0 .32deg,transparent .32deg 4.2deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 91%,#000 92.2%);
+  mask:radial-gradient(closest-side,transparent 91%,#000 92.2%);
+  animation:spin 120s linear infinite;
+}
+
 /* ===== 舞台 ===== */
 .stage{
   position:relative;z-index:2;
@@ -58,23 +77,30 @@ body::after{
   display:flex;align-items:center;justify-content:space-between;gap:18px;
   padding:clamp(20px,2.4vw,32px);
   min-height:clamp(210px,30vh,330px);
-  border:1px solid rgba(255,179,71,.14);
+  border:1px solid color-mix(in srgb,var(--accent) 15%,transparent);
   border-radius:4px;
   text-decoration:none;color:inherit;
   background:
-    linear-gradient(160deg,rgba(255,179,71,.055),transparent 48%),
-    radial-gradient(90% 76% at 50% 132%,rgba(255,150,40,.14),transparent 72%),
+    linear-gradient(160deg,color-mix(in srgb,var(--accent) 6%,transparent),transparent 48%),
+    radial-gradient(90% 76% at 50% 132%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 72%),
     rgba(7,11,15,.72);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.05),
-    inset 0 0 70px rgba(255,150,40,.05),
+    inset 0 0 70px color-mix(in srgb,var(--accent) 5%,transparent),
     0 26px 60px -38px #000;
-  transition:border-color .45s ease,box-shadow .45s ease,transform .45s cubic-bezier(.2,.7,.2,1),background-color .45s ease;
+  transition:border-color .45s ease,box-shadow .45s ease,transform .5s cubic-bezier(.2,.7,.2,1),background-color .45s ease;
+  transform:perspective(1100px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--lift,0px));
   --accent:var(--amber);
   --mx:50%;--my:90%;
+  animation:bootIn .95s cubic-bezier(.2,.7,.2,1) backwards;
 }
+.card:nth-of-type(1){animation-delay:0s}
+.card:nth-of-type(2){animation-delay:.1s}
+@keyframes bootIn{from{transform:perspective(1100px) translateY(24px) scale(.982)}}
+.card[data-accent="cyan"]{--accent:var(--cyan)}
+.card[data-accent="cyan"] .name{color:#eafdfa;text-shadow:0 0 22px rgba(87,230,211,.18),0 0 60px rgba(87,230,211,.06)}
 .card.live{cursor:pointer}
-.card:hover{transform:translateY(-3px)}
+.card:hover{--lift:-4px}
 .card:hover,.card:focus-visible{
   border-color:color-mix(in srgb,var(--accent) 40%,transparent);
   box-shadow:
@@ -101,6 +127,38 @@ body::after{
   transition:opacity .5s ease;
 }
 .card:hover::after,.card:focus-visible::after{opacity:1}
+
+/* 描边流光 */
+.bezel{
+  position:absolute;inset:0;border-radius:4px;padding:1px;pointer-events:none;overflow:hidden;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+}
+.bezel::before{
+  content:"";position:absolute;left:50%;top:50%;width:150%;aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  background:conic-gradient(from 0deg,
+    transparent 0 58%,
+    color-mix(in srgb,var(--accent) 30%,transparent) 72%,
+    color-mix(in srgb,var(--accent) 75%,transparent) 82%,
+    #fff4e4 85%,
+    color-mix(in srgb,var(--accent) 75%,transparent) 88%,
+    transparent 93% 100%);
+  animation:spin 8s linear infinite;
+  opacity:.75;transition:opacity .45s ease;
+}
+.card:hover .bezel::before{opacity:1}
+.card.off .bezel::before{opacity:.35}
+@supports not ((mask-composite:exclude) or (-webkit-mask-composite:xor)){.bezel{display:none}}
+
+/* 高光 */
+.spec{
+  position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .45s ease;
+  background:radial-gradient(24% 32% at var(--mx) var(--my),rgba(255,244,228,.075),transparent 64%);
+}
+.card:hover .spec{opacity:1}
 
 /* 扫描（hover 时才扫一次） */
 .scan{
@@ -168,11 +226,26 @@ body::after{
 .card:hover .core{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--accent) 55%,transparent))}
 .card:hover .core .arrow{transform:translateX(2px)}
 
+/* 反应堆脉冲与锁定十字 */
+.core .ping{
+  position:absolute;inset:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);
+  animation:ping 3.6s ease-out infinite;pointer-events:none;
+}
+@keyframes ping{0%{transform:scale(.8);opacity:.5}65%{transform:scale(1.5);opacity:0}100%{opacity:0}}
+.core .cross{position:absolute;left:50%;top:50%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 65%,transparent),transparent);
+  transition:transform .5s cubic-bezier(.2,.7,.2,1);}
+.core .cross.h{width:190%;height:1px;transform:translate(-50%,-50%) scaleX(0)}
+.core .cross.v{width:1px;height:190%;transform:translate(-50%,-50%) scaleY(0);
+  background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--accent) 65%,transparent),transparent)}
+.card:hover .core .cross.h{transform:translate(-50%,-50%) scaleX(1)}
+.card:hover .core .cross.v{transform:translate(-50%,-50%) scaleY(1)}
+
 /* 待接入态 */
 .card.off{cursor:default}
 .card.off .name{color:rgba(242,247,249,.32);text-shadow:none}
 .card.off .rule{background:rgba(255,255,255,.16);box-shadow:none}
-.card.off:hover{transform:none;border-color:rgba(255,179,71,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 70px rgba(255,150,40,.04),0 26px 60px -38px #000}
+.card.off:hover{--lift:0px;border-color:rgba(255,179,71,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 70px rgba(255,150,40,.04),0 26px 60px -38px #000}
 .card.off:hover::after{opacity:0}
 .card.off:hover .scan{animation:none}
 .card.off:hover .idx::after{width:30px}
@@ -195,18 +268,22 @@ body::after{
   .name{font-size:clamp(24px,7.6vw,30px)}
 }
 @media (prefers-reduced-motion:reduce){
-  .core .r1,.core .r2{animation:none}
+  .core .r1,.core .r2,.core .ping,.bezel::before,.beam{animation:none}
+  .beam{opacity:0}
   *{animation:none!important;transition:none!important}
 }
 </style>
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
+<div class="beam" aria-hidden="true"></div>
 
 <main class="stage">
   <div class="deck">
 
-    <a class="card live" id="tileQuery" href="./query.html" aria-label="查询总币量">
+    <a class="card live" id="tileQuery" href="./query.html" aria-label="QUERY">
+      <span class="bezel" aria-hidden="true"></span>
+      <span class="spec" aria-hidden="true"></span>
       <span class="c tl" aria-hidden="true"></span><span class="c tr" aria-hidden="true"></span>
       <span class="c bl" aria-hidden="true"></span><span class="c br" aria-hidden="true"></span>
       <span class="ruler" aria-hidden="true"></span>
@@ -214,9 +291,10 @@ body::after{
       <span class="idx" aria-hidden="true">01</span>
       <span class="stack">
         <span class="rule" aria-hidden="true"></span>
-        <span class="name">查询总币量</span>
+        <span class="name">QUERY</span>
       </span>
       <span class="core" aria-hidden="true">
+        <span class="ping"></span><span class="cross h"></span><span class="cross v"></span>
         <svg viewBox="0 0 120 120" fill="none">
           <defs>
             <radialGradient id="cg1" cx="50%" cy="50%" r="50%">
@@ -242,6 +320,8 @@ body::after{
     </a>
 
     <a class="card off" id="tileChallenge" href="#" aria-disabled="true" aria-label="FUNBOT" data-accent="cyan">
+      <span class="bezel" aria-hidden="true"></span>
+      <span class="spec" aria-hidden="true"></span>
       <span class="c tl" aria-hidden="true"></span><span class="c tr" aria-hidden="true"></span>
       <span class="c bl" aria-hidden="true"></span><span class="c br" aria-hidden="true"></span>
       <span class="ruler" aria-hidden="true"></span>
@@ -252,6 +332,7 @@ body::after{
         <span class="name">FUNBOT</span>
       </span>
       <span class="core" aria-hidden="true">
+        <span class="ping"></span><span class="cross h"></span><span class="cross v"></span>
         <svg viewBox="0 0 120 120" fill="none">
           <defs>
             <radialGradient id="cg2" cx="50%" cy="50%" r="50%">
@@ -311,13 +392,27 @@ body::after{
     }
   }
 
-  if (window.matchMedia('(hover:hover)').matches) {
-    document.querySelectorAll('.card').forEach(function (p) {
+  /* 指针：辉光跟随 + 轻微 3D 倾斜 */
+  if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+    document.querySelectorAll('.card.live').forEach(function (p) {
+      var raf = 0, rx = 0, ry = 0;
       p.addEventListener('pointermove', function (e) {
         var r = p.getBoundingClientRect();
-        p.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(2) + '%');
-        p.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(2) + '%');
+        var nx = (e.clientX - r.left) / r.width - 0.5;
+        var ny = (e.clientY - r.top) / r.height - 0.5;
+        p.style.setProperty('--mx', ((nx + 0.5) * 100).toFixed(2) + '%');
+        p.style.setProperty('--my', ((ny + 0.5) * 100).toFixed(2) + '%');
+        ry = nx * 5; rx = -ny * 4;
+        if (!raf) raf = requestAnimationFrame(function () {
+          raf = 0;
+          p.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+          p.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+        });
       }, { passive: true });
+      p.addEventListener('pointerleave', function () {
+        p.style.setProperty('--rx', '0deg');
+        p.style.setProperty('--ry', '0deg');
+      });
     });
   }
 }());
