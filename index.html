@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>MISSION CONTROL</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  margin:0;background:#04070a;color:#f2f7f9;
+  font:400 16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  --amber:#ffb347;
+  --amber-2:#ff8a1e;
+  --cyan:#57e6d3;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+
+/* ===== 环境 ===== */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(52vw 46vh at 26% 66%,rgba(255,150,40,.13),transparent 64%),
+    radial-gradient(46vw 44vh at 78% 72%,rgba(60,210,190,.06),transparent 66%),
+    radial-gradient(70vw 52vh at 50% -12%,rgba(255,190,120,.06),transparent 68%),
+    #04070a;
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4;
+  background:
+    repeating-linear-gradient(180deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px),
+    radial-gradient(130vw 110vh at 50% 46%,transparent 58%,rgba(0,0,0,.62) 100%);
+  mix-blend-mode:screen;
+}
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.20;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.55'/></svg>");
+}
+
+/* ===== 舞台 ===== */
+.stage{
+  position:relative;z-index:2;
+  min-height:100vh;min-height:100dvh;
+  display:grid;place-items:center;
+  padding:clamp(20px,5vw,72px);
+}
+.deck{
+  width:min(1080px,100%);
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(14px,2vw,24px);
+}
+
+/* ===== 卡片 ===== */
+.card{
+  position:relative;isolation:isolate;overflow:hidden;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:clamp(20px,2.4vw,32px);
+  min-height:clamp(210px,30vh,330px);
+  border:1px solid rgba(255,179,71,.14);
+  border-radius:4px;
+  text-decoration:none;color:inherit;
+  background:
+    linear-gradient(160deg,rgba(255,179,71,.055),transparent 48%),
+    radial-gradient(90% 76% at 50% 132%,rgba(255,150,40,.14),transparent 72%),
+    rgba(7,11,15,.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    inset 0 0 70px rgba(255,150,40,.05),
+    0 26px 60px -38px #000;
+  transition:border-color .45s ease,box-shadow .45s ease,transform .45s cubic-bezier(.2,.7,.2,1),background-color .45s ease;
+  --accent:var(--amber);
+  --mx:50%;--my:90%;
+}
+.card.live{cursor:pointer}
+.card:hover{transform:translateY(-3px)}
+.card:hover,.card:focus-visible{
+  border-color:color-mix(in srgb,var(--accent) 40%,transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 0 90px color-mix(in srgb,var(--accent) 9%,transparent),
+    0 30px 70px -34px rgba(0,0,0,.9),
+    0 0 42px -12px color-mix(in srgb,var(--accent) 45%,transparent);
+}
+.card:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 70%,transparent);outline-offset:4px}
+
+/* 网格 + 指针辉光 */
+.card::before{
+  content:"";position:absolute;inset:0;z-index:-2;opacity:.55;pointer-events:none;
+  background-image:
+    linear-gradient(to right,rgba(255,255,255,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(90% 90% at 50% 110%,#000,transparent 82%);
+  mask-image:radial-gradient(90% 90% at 50% 110%,#000,transparent 82%);
+}
+.card::after{
+  content:"";position:absolute;inset:0;z-index:-1;opacity:0;pointer-events:none;
+  background:radial-gradient(50% 70% at var(--mx) var(--my),color-mix(in srgb,var(--accent) 18%,transparent),transparent 68%);
+  transition:opacity .5s ease;
+}
+.card:hover::after,.card:focus-visible::after{opacity:1}
+
+/* 扫描（hover 时才扫一次） */
+.scan{
+  position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,transparent 0%,color-mix(in srgb,var(--accent) 9%,transparent) 46%,color-mix(in srgb,var(--accent) 16%,transparent) 52%,color-mix(in srgb,var(--accent) 9%,transparent) 58%,transparent 100%);
+  height:46%;
+}
+.card:hover .scan{animation:scan 1.5s cubic-bezier(.4,0,.6,1)}
+@keyframes scan{0%{opacity:0;transform:translateY(-120%)}18%{opacity:1}100%{opacity:0;transform:translateY(240%)}}
+
+/* 四角卡口 */
+.c{position:absolute;width:16px;height:16px;border:1px solid rgba(255,179,71,.30);pointer-events:none;transition:border-color .45s ease,width .35s ease,height .35s ease}
+.c.tl{top:12px;left:12px;border-right:0;border-bottom:0}
+.c.tr{top:12px;right:12px;border-left:0;border-bottom:0}
+.c.bl{bottom:12px;left:12px;border-right:0;border-top:0}
+.c.br{bottom:12px;right:12px;border-left:0;border-top:0}
+.card:hover .c{border-color:color-mix(in srgb,var(--accent) 55%,transparent);width:20px;height:20px}
+.card[data-accent="cyan"] .c{border-color:rgba(87,230,211,.22)}
+
+/* 角部裁切光环 */
+.ruler{
+  position:absolute;left:14px;right:14px;top:0;height:9px;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(255,179,71,.20) 0 1px,transparent 1px 13px);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+  transition:opacity .5s ease;
+}
+.card[data-accent="cyan"] .ruler{background:repeating-linear-gradient(90deg,rgba(87,230,211,.16) 0 1px,transparent 1px 13px)}
+.card:hover .ruler{opacity:.9}
+
+/* 编号 */
+.idx{
+  position:absolute;top:clamp(18px,2.2vw,26px);left:clamp(20px,2.4vw,30px);
+  display:flex;align-items:center;gap:10px;
+  font:500 11px/1 var(--mono);letter-spacing:.3em;
+  color:color-mix(in srgb,var(--accent) 66%,#8ea1ab);
+  pointer-events:none;
+}
+.idx::after{content:"";width:30px;height:1px;background:currentColor;opacity:.4;transition:width .45s cubic-bezier(.2,.7,.2,1)}
+.card:hover .idx::after{width:48px}
+
+/* 标题 */
+.stack{position:relative;display:flex;flex-direction:column;gap:clamp(10px,1.4vw,16px);min-width:0}
+.rule{width:clamp(30px,3.4vw,46px);height:2px;background:var(--accent);border-radius:2px;
+  box-shadow:0 0 12px color-mix(in srgb,var(--accent) 75%,transparent);
+  transition:width .45s cubic-bezier(.2,.7,.2,1)}
+.card:hover .rule{width:clamp(58px,6vw,86px)}
+.name{
+  font-size:clamp(30px,4.3vw,58px);font-weight:600;letter-spacing:-.035em;line-height:1.02;
+  color:#fff8ef;text-shadow:0 0 20px rgba(255,160,60,.26),0 0 52px rgba(255,120,20,.10);
+}
+
+/* 反应堆按钮 */
+.core{
+  position:relative;flex:0 0 auto;align-self:flex-end;
+  width:clamp(64px,6.8vw,98px);aspect-ratio:1;
+  display:grid;place-items:center;
+  transition:transform .45s cubic-bezier(.2,.7,.2,1),filter .45s ease;
+}
+.core svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.core .r1{animation:spin 22s linear infinite;transform-origin:60px 60px}
+.core .r2{animation:spin 34s linear infinite reverse;transform-origin:60px 60px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.core .arrow{transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.card:hover .core{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--accent) 55%,transparent))}
+.card:hover .core .arrow{transform:translateX(2px)}
+
+/* 待接入态 */
+.card.off{cursor:default}
+.card.off .name{color:rgba(242,247,249,.32);text-shadow:none}
+.card.off .rule{background:rgba(255,255,255,.16);box-shadow:none}
+.card.off:hover{transform:none;border-color:rgba(255,179,71,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 70px rgba(255,150,40,.04),0 26px 60px -38px #000}
+.card.off:hover::after{opacity:0}
+.card.off:hover .scan{animation:none}
+.card.off:hover .idx::after{width:30px}
+.card.off:hover .rule{width:clamp(30px,3.4vw,46px)}
+.card.off .core{filter:none}
+
+@media (max-width:900px){
+  .deck{grid-template-columns:1fr;gap:14px;width:min(620px,100%)}
+  .card{min-height:clamp(150px,20vh,200px);padding:clamp(18px,4vw,26px)}
+  .name{font-size:clamp(26px,6.4vw,40px)}
+  .core{width:clamp(52px,11vw,64px)}
+  .idx{top:16px;left:18px}
+  .c{width:14px;height:14px}
+  .c.tl{top:10px;left:10px}.c.tr{top:10px;right:10px}
+  .c.bl{bottom:10px;left:10px}.c.br{bottom:10px;right:10px}
+}
+@media (max-width:420px){
+  .stage{padding:16px}
+  .card{min-height:clamp(140px,18vh,168px)}
+  .name{font-size:clamp(24px,7.6vw,30px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .core .r1,.core .r2{animation:none}
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<main class="stage">
+  <div class="deck">
+
+    <a class="card live" id="tileQuery" href="./query.html" aria-label="查询总币量">
+      <span class="c tl" aria-hidden="true"></span><span class="c tr" aria-hidden="true"></span>
+      <span class="c bl" aria-hidden="true"></span><span class="c br" aria-hidden="true"></span>
+      <span class="ruler" aria-hidden="true"></span>
+      <span class="scan" aria-hidden="true"></span>
+      <span class="idx" aria-hidden="true">01</span>
+      <span class="stack">
+        <span class="rule" aria-hidden="true"></span>
+        <span class="name">查询总币量</span>
+      </span>
+      <span class="core" aria-hidden="true">
+        <svg viewBox="0 0 120 120" fill="none">
+          <defs>
+            <radialGradient id="cg1" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffd9a6" stop-opacity=".55"/>
+              <stop offset="45%" stop-color="#ffb347" stop-opacity=".18"/>
+              <stop offset="100%" stop-color="#ff8a1e" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="60" cy="60" r="26" fill="url(#cg1)"/>
+          <circle cx="60" cy="60" r="57" stroke="rgba(255,179,71,.22)" stroke-width="1" stroke-dasharray="1 6"/>
+          <g class="r1">
+            <circle cx="60" cy="60" r="50" stroke="rgba(255,179,71,.45)" stroke-width="1.2" stroke-dasharray="62 252"/>
+            <circle cx="60" cy="60" r="50" stroke="rgba(255,179,71,.7)" stroke-width="1.2" stroke-dasharray="14 300"/>
+          </g>
+          <g class="r2">
+            <circle cx="60" cy="60" r="40" stroke="rgba(255,179,71,.28)" stroke-width="1" stroke-dasharray="3 10"/>
+          </g>
+          <circle cx="60" cy="60" r="30" fill="rgba(255,150,40,.07)" stroke="rgba(255,179,71,.3)" stroke-width="1"/>
+          <circle cx="60" cy="60" r="21" fill="rgba(255,150,40,.10)" stroke="rgba(255,179,71,.45)" stroke-width="1"/>
+          <path class="arrow" d="M52 60h15M61 54l6 6-6 6" stroke="#ffd7a3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </a>
+
+    <a class="card off" id="tileChallenge" href="#" aria-disabled="true" aria-label="FUNBOT" data-accent="cyan">
+      <span class="c tl" aria-hidden="true"></span><span class="c tr" aria-hidden="true"></span>
+      <span class="c bl" aria-hidden="true"></span><span class="c br" aria-hidden="true"></span>
+      <span class="ruler" aria-hidden="true"></span>
+      <span class="scan" aria-hidden="true"></span>
+      <span class="idx" aria-hidden="true">02</span>
+      <span class="stack">
+        <span class="rule" aria-hidden="true"></span>
+        <span class="name">FUNBOT</span>
+      </span>
+      <span class="core" aria-hidden="true">
+        <svg viewBox="0 0 120 120" fill="none">
+          <defs>
+            <radialGradient id="cg2" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#c9fff6" stop-opacity=".38"/>
+              <stop offset="45%" stop-color="#57e6d3" stop-opacity=".14"/>
+              <stop offset="100%" stop-color="#57e6d3" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="60" cy="60" r="26" fill="url(#cg2)"/>
+          <circle cx="60" cy="60" r="57" stroke="rgba(87,230,211,.16)" stroke-width="1" stroke-dasharray="1 6"/>
+          <g class="r1">
+            <circle cx="60" cy="60" r="50" stroke="rgba(87,230,211,.30)" stroke-width="1.2" stroke-dasharray="62 252"/>
+            <circle cx="60" cy="60" r="50" stroke="rgba(87,230,211,.5)" stroke-width="1.2" stroke-dasharray="14 300"/>
+          </g>
+          <g class="r2">
+            <circle cx="60" cy="60" r="40" stroke="rgba(87,230,211,.18)" stroke-width="1" stroke-dasharray="3 10"/>
+          </g>
+          <circle cx="60" cy="60" r="30" fill="rgba(87,230,211,.04)" stroke="rgba(87,230,211,.2)" stroke-width="1"/>
+          <circle cx="60" cy="60" r="21" fill="rgba(87,230,211,.06)" stroke="rgba(87,230,211,.28)" stroke-width="1"/>
+          <path class="arrow" d="M52 60h15M61 54l6 6-6 6" stroke="rgba(200,248,240,.55)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </a>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* 入口地址：只改这一处
+     query     : 查询页文件名
+     challenge : 另一个挑战，留空 = 灰态不可点；填地址即自动可点 */
+  var ROUTES = {
+    query: 'file:///Users/wgl/material/github/awake/query.html',
+    challenge: 'https://124.223.95.218:9443/login'
+  };
+
+  var q = document.getElementById('tileQuery');
+  var c = document.getElementById('tileChallenge');
+
+  if (q && ROUTES.query) q.setAttribute('href', ROUTES.query);
+
+  if (c) {
+    if (ROUTES.challenge) {
+      c.setAttribute('href', ROUTES.challenge);
+      c.removeAttribute('aria-disabled');
+      c.classList.remove('off');
+      c.classList.add('live');
+      if (/^https?:/i.test(ROUTES.challenge)) {
+        c.setAttribute('target', '_blank');
+        c.setAttribute('rel', 'noopener noreferrer');
+      }
+    } else {
+      c.addEventListener('click', function (e) { e.preventDefault(); });
+    }
+  }
+
+  if (window.matchMedia('(hover:hover)').matches) {
+    document.querySelectorAll('.card').forEach(function (p) {
+      p.addEventListener('pointermove', function (e) {
+        var r = p.getBoundingClientRect();
+        p.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(2) + '%');
+        p.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(2) + '%');
+      }, { passive: true });
+    });
+  }
+}());
+</script>
+</body>
+</html>
